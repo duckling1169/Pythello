@@ -6,12 +6,11 @@ class Player:
 
     def __init__(self, color:DiscEnum):
         self.color = color
+        self.score = 2
 
     def play(self, board:Board) -> Point:
         while True:
-            resp = input(f'Your turn! (x,y)\n')
-            if resp == 'q':
-                return None
+            resp = input(f'Placement: ')
             try:
                 x = int(resp.split(',')[0])
                 y = int(resp.split(',')[1])

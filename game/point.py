@@ -24,4 +24,4 @@ class Point:
         return hash((self.x, self.y))
 
     def __str__(self):
-        return f'Point({self.x}, {str(self.y)})'
+        return f'({self.x}, {str(self.y)})'

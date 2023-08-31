@@ -70,6 +70,9 @@ class Board():
                 for y in range(len(self.grid[0])) \
                 if self.can_place_disc_and_flip(Point(x, y), color, False)]
 
+    def calculate_player_points(self, player):
+        return sum(row.count(player.color.value) for row in self.grid)
+
     def __str__(self):
         scale = self.scale
         grid = self.grid
