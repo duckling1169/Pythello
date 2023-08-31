@@ -7,11 +7,10 @@ class Runner:
 
     def __init__(self):
 
-        gb = Pythello()
-        # gb.setup_game()
-        # while True:
-        #     for player in gb.players:
-        #         player.play()
+        game = Pythello()
+        print(game.play())
+
+Runner()
 
 class Tester:
 
@@ -52,5 +51,9 @@ class Tester:
         game2.board.grid = [[DiscEnum.BLACK.value] * len(game2.board.grid) for _ in range(len(game2.board.grid))]
         return not game1.is_game_over() and game2.is_game_over()
 
+    def test_random_player_game():
+        game = Pythello()
+        print(game.play())
+        return True
 
-tester = Tester()
+# tester = Tester()
