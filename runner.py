@@ -1,14 +1,48 @@
-from pythellogame import Pythello
+from pythello import Pythello
 from game.enums import DiscEnum
 from game.point import Point
+
+from players.player import Player
+from players.random_player import RandomPlayer
+from players.minimax_player import MiniMaxPlayer
+from players.late_minimax_player import LateMiniMaxPlayer
+from players.mcts_player import MCTSPlayer
+
+from collections import Counter
 import copy
 
 class Runner:
 
     def __init__(self):
+        Runner.compare_players(MiniMaxPlayer, MCTSPlayer, 1, True)
 
-        game = Pythello()
-        print(game.play())
+    @staticmethod
+    def compare_players(player1:Player, player2:Player, games=10, show_game=False) -> None:
+        winners_dict = {}
+        for i in range(games):
+            print(f'Playing game {i}...')
+            game = Pythello(players = [player1(DiscEnum.WHITE), player2(DiscEnum.BLACK)])
+            game.play(show_game)
+            winner = game.get_winner()
+            if type(winner).__name__ not in winners_dict.keys():
+                winners_dict[type(winner).__name__] = (winner.color, 0)
+            winners_dict[type(winner).__name__] = (winner.color, winners_dict[type(winner).__name__][1] + 1)
+            print({type(winner).__name__})
+
+        winners_dict_switched = {}
+        for i in range(games):
+            print(f'Playing game {i}...')
+            game = Pythello(players = [player2(DiscEnum.WHITE), player1(DiscEnum.BLACK)])
+            game.play(show_game)
+            winner = game.get_winner()
+            if type(winner).__name__ not in winners_dict_switched.keys():
+                winners_dict_switched[type(winner).__name__] = (winner.color, 0)
+            winners_dict_switched[type(winner).__name__] = (winner.color, winners_dict_switched[type(winner).__name__][1] + 1)
+            type(winner).__name__
+
+        print('\n----------\nGames won by players...')
+        [ print(f'\t{winner} as {tuple[0].name.title()} ({tuple[0].value}): {tuple[1]}/{i+1}') for winner, tuple in Counter(winners_dict).items() ]
+        [ print(f'\t{winner} as {tuple[0].name.title()} ({tuple[0].value}): {tuple[1]}/{i+1}') for winner, tuple in Counter(winners_dict_switched).items() ]
 
 Runner()
 
@@ -50,10 +84,5 @@ class Tester:
         game2 = Pythello()
         game2.board.grid = [[DiscEnum.BLACK.value] * len(game2.board.grid) for _ in range(len(game2.board.grid))]
         return not game1.is_game_over() and game2.is_game_over()
+    
 
-    def test_random_player_game():
-        game = Pythello()
-        print(game.play())
-        return True
-
-# tester = Tester()
