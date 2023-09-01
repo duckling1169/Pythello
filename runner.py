@@ -18,8 +18,10 @@ class Runner:
         # learning_player = RandomLearningPlayer(DiscEnum.BLACK, 1000)
 
         # print(learning_player.custom_values)
+
+        Runner.compare_players(MiniMaxPlayer(DiscEnum.WHITE), RandomPlayer(DiscEnum.BLACK), 10, True)
         
-        Runner.compare_players(RandomPlayer(DiscEnum.WHITE), MCTSPlayer(DiscEnum.BLACK), 10, True)
+        # Runner.compare_players(RandomPlayer(DiscEnum.WHITE), MCTSPlayer(DiscEnum.BLACK), 10, True)
 
     @staticmethod
     def play_game(players, show_game=False):
@@ -30,6 +32,7 @@ class Runner:
 
         while not board.is_game_over():
             for player in players:
+                play_start = perf_counter()
                 if show_game:
                     print(f'{player}\'s turn.')
 
@@ -49,16 +52,18 @@ class Runner:
                 board.can_place_disc_and_flip(placement_point, player.color)
 
                 if show_game:
-                    print(f'{player} played at {placement_point}.')
+                    print(f'{player} played at {placement_point} ({round(perf_counter() - play_start, 2)} secs).')
                     print(board)
 
         players[0].score = board.calculate_color_points(players[0].color)
         players[1].score = board.calculate_color_points(players[1].color)
 
-        if show_game:
-            print(f'Time taken: {perf_counter() - start}')
+        winner = None if players[0].score == players[1].score else max(players, key=lambda p: p.score)
 
-        return None if players[0].score == players[1].score else max(players, key=lambda p: p.score)
+        if show_game:
+            print(f'Result is {winner}. Time taken: {round(perf_counter() - start)} secs.')
+
+        return winner
 
     @staticmethod
     def compare_players(player1: Player, player2: Player, games=10, show_game=False):
