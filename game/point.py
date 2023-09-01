@@ -24,5 +24,4 @@ class Point:
         return hash((self.x, self.y))
 
     def __str__(self):
-        arr = [i for i in range(1, 8)]
-        return f'({chr(ord("a") + self.x)}, {arr[self.y]})'
+        return f'({chr(ord("a") + self.x)}, {self.y + 1})'
