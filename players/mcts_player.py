@@ -8,7 +8,7 @@ import copy
 
 class MCTSPlayer(Player):
 
-    def __init__(self, color: DiscEnum, iterations: int = 1000):
+    def __init__(self, color: DiscEnum, iterations: int = 500):
         super().__init__(color)
         self.iterations = iterations
 
@@ -82,8 +82,7 @@ class MCTSPlayer(Player):
                 node.color = DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
 
         # Game is over, determine the winner
-        winner = current_state.get_winner(current_state)
-        return winner
+        return current_state.get_winner(current_state)
 
     def backpropagate(self, node, result):
         while node is not None:
@@ -116,8 +115,7 @@ class MCTSPlayer(Player):
         opponent_legal_moves = game_state.get_all_playable_points(
             DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
         )
-        mobility_score = len(player_legal_moves) - len(opponent_legal_moves)
-        return mobility_score
+        return len(player_legal_moves) - len(opponent_legal_moves)
 
 class Node:
     def __init__(self, state, color, move=None):
