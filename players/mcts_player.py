@@ -61,9 +61,9 @@ class MCTSPlayer(Player):
             if legal_moves:
                 random_move = random.choice(legal_moves)
                 current_state.can_place_disc_and_flip(random_move, node.color)
-                node.color = DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
+                node.color = DiscEnum.WHITE if node.color == DiscEnum.BLACK else DiscEnum.BLACK
             else:
-                node.color = DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
+                node.color = DiscEnum.WHITE if node.color == DiscEnum.BLACK else DiscEnum.BLACK
 
         # Game over
         winner = current_state.get_winner(self.color)
