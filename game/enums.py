@@ -1,7 +1,7 @@
 from enum import Enum
 
 class DiscEnum(Enum):
-    EMPTY = ' '
-    WHITE = '0'
-    BLACK = '1'
+    EMPTY = '.'
+    WHITE = 'O'
+    BLACK = 'X'
     TIE = 'T'

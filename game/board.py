@@ -133,25 +133,28 @@ class Board():
     def __str__(self):
         scale = self.scale
         grid = self.grid
-        s = '\n'
-
-        # Loop through each row in the grid, starting from the bottom
-        for i in range(len(grid)*scale - 1, -1, -1):
-            if (i+1) % scale == 0:
-                # Add row number with appropriate spacing
-                s += f"{(int)(i/scale):2d} |" + '  ' * scale
-                # Join the elements in the row as strings with spacing and add newlines
-                s += ('  ' * scale).join(map(str, grid[(int)(i/scale)])) + '\n'
-            else:
-                s += '   |\n'
         
         # Determine the number of spaces for the header separator line
         spaces = 3 if len(grid) < 11 else 4
-        # Add the header separator line
-        s += ' ' * spaces + '+' + f"{'--' * scale}+" * len(grid) + '\n' + ' ' * 4
-        
+        s = '\n    '
+
         # Loop through each column index and add column numbers with appropriate spacing
-        for c in range(len(grid)):
-            s += '  ' * self.scale + str(c)
+        for i in range(len(grid)):
+            s += '  ' * self.scale + chr(ord('a') + i)
+
+        # Print separator below letter row
+        s += '\n' + ' ' * spaces + '+' + f"{'--' * scale}+" * len(grid) + '\n'
+        
+        # Loop through each row in the grid, starting from the bottom
+        for i in range(1, len(grid)*scale + 1):
+            num = i // scale
+            if i % scale == 0:
+                # Add row number with appropriate spacing
+                s += f"{num:2d} |" + '  ' * scale
+
+                # Join the elements in the row as strings with spacing and add newlines
+                s += ('  ' * scale).join(map(str, grid[int(i/scale)-1])) + '\n'
+            else:
+                s += '   |\n'
 
         return s

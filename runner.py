@@ -19,8 +19,7 @@ class Runner:
 
         # print(learning_player.custom_values)
         
-        Runner.compare_players(MCTSPlayer(DiscEnum.BLACK), RandomPlayer(DiscEnum.WHITE), 10, False)
-
+        Runner.compare_players(RandomPlayer(DiscEnum.WHITE), MCTSPlayer(DiscEnum.BLACK), 10, True)
 
     @staticmethod
     def play_game(players, show_game=False):
@@ -126,3 +125,4 @@ class Tester:
         board.grid = [[DiscEnum.BLACK.value] * len(board.grid) for _ in range(len(board.grid))]
         return board.is_game_over() and not board2.is_game_over()
 
+# Tester()
