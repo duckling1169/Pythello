@@ -18,5 +18,6 @@ class Player:
             except:
                 continue
             
-
+    def __str__(self):
+        return f'{type(self).__name__} ({self.color.name.title()}, {self.color.value})'
             

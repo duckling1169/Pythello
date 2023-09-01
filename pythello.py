@@ -25,13 +25,13 @@ class Pythello:
         while not self.is_game_over():
             for player in self.players:
                 if show_game:
-                    print(f'{player.color.name.title()}\'s turn. ({player.color.value})')
+                    print(f'{player}\'s turn.')
 
                 playable_points = self.board.get_all_playable_points(player.color)
 
                 if not playable_points:
                     if show_game:
-                        print(f'No available spots for {player.color.name.title()}.')
+                        print(f'No available spots for {player}.')
                     continue
 
                 placed = False
@@ -43,7 +43,7 @@ class Pythello:
                 self.players[0].score = self.board.calculate_color_points(self.players[0].color)
                 self.players[1].score = self.board.calculate_color_points(self.players[1].color)
                 if show_game:
-                    print(f'{player.color.name.title()} played at {placement_point}.')
+                    print(f'{player} played at {placement_point}.')
                     print(self.board)
     
     def get_winner(self) -> Player:

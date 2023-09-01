@@ -14,6 +14,7 @@ import copy
 class Runner:
 
     def __init__(self):
+        Runner.compare_players(MiniMaxPlayer, LateMiniMaxPlayer, 3, True)
         Runner.compare_players(MiniMaxPlayer, MCTSPlayer, 1, True)
 
     @staticmethod
