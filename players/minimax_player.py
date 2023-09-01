@@ -6,14 +6,15 @@ import copy
 
 class MiniMaxPlayer(Player):
 
-    def __init__(self, color:DiscEnum):
+    def __init__(self, color:DiscEnum, depth:int = 5):
+        self.depth = depth
         super().__init__(color)
 
     def play(self, board: Board) -> Point:
-        best_move, _ = self.minimax(board, True, self.color)
+        best_move, _ = self.minimax(board, True, self.color, self.depth)
         return best_move
 
-    def minimax(self, board: Board, maximizing_player: bool, color: DiscEnum, depth: int = 3, alpha: float = float('-inf'), beta: float = float('inf')):
+    def minimax(self, board:Board, maximizing_player:bool, color:DiscEnum, depth:int, alpha:float = float('-inf'), beta:float = float('inf')):
         if depth == 0 or not board.get_all_playable_points(color):
             return None, board.mobility_heuristic(color) 
         
