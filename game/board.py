@@ -1,5 +1,5 @@
-from game.point import Point
 from game.enums import DiscEnum
+from game.point import Point
 
 class Board():
 
@@ -82,7 +82,7 @@ class Board():
             for y in range(len(self.grid[0])) \
             if self.grid[y][x] == DiscEnum.EMPTY.value)
 
-    def get_winner(self, color:DiscEnum):
+    def winner_heuristic(self, color:DiscEnum):
         black_points = self.calculate_color_points(DiscEnum.BLACK)
         white_points = self.calculate_color_points(DiscEnum.WHITE)
 
@@ -92,6 +92,44 @@ class Board():
         winner = DiscEnum.BLACK if black_points > white_points else DiscEnum.WHITE
         return 1 if winner == color else -1
 
+    def mobility_heuristic(self, player_color):
+        player_legal_moves = self.get_all_playable_points(player_color)
+        opponent_legal_moves = self.get_all_playable_points(
+            DiscEnum.BLACK if player_color == DiscEnum.WHITE else DiscEnum.WHITE
+        )
+        return len(player_legal_moves) - len(opponent_legal_moves)
+
+    def square_heuristic(self, color):
+        # Assign values to the board positions (customize these values)
+        corner_value = 10
+        x_square_value = -5
+        c_square_value = -2
+        
+        # Define the board positions
+        corners = [(0, 0), (0, 7), (7, 0), (7, 7)]
+        x_squares = [(1, 1), (1, 6), (6, 1), (6, 6)]
+        c_squares = [(0, 1), (1, 0), (6, 0), (7, 1), (0, 6), (1, 7), (6, 7), (7, 6)]
+
+        # Initialize the heuristic value
+        heuristic_value = 0
+
+        # Iterate through each board position and assign custom values based on the color
+        for y in range(len(self.grid)):
+            for x in range(len(self.grid)):
+                placed_color = self.grid[x][y]
+                position = (x, y)
+                if placed_color == DiscEnum.EMPTY.value:
+                    pass  # You can add more custom logic for empty positions if needed
+                mod = 1 if placed_color == color.value else -1
+                if position in corners:
+                    heuristic_value += corner_value * mod
+                elif position in x_squares:
+                    heuristic_value += x_square_value * mod
+                elif position in c_squares:
+                    heuristic_value += c_square_value * mod
+
+        return heuristic_value
+    
     def __str__(self):
         scale = self.scale
         grid = self.grid

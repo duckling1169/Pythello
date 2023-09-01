@@ -1,7 +1,7 @@
-from players.player import Player
 from game.enums import DiscEnum
 from game.board import Board
 from game.point import Point
+from players.player import Player
 import copy
 
 class MiniMaxPlayer(Player):
@@ -13,9 +13,12 @@ class MiniMaxPlayer(Player):
         best_move, _ = self.minimax(board, True, self.color)
         return best_move
 
-    def minimax(self, board: Board, maximizing_player: bool, color: DiscEnum, depth: int = 7, alpha: float = float('-inf'), beta: float = float('inf')):
-        if depth == 0 or board.is_game_over() or not board.get_all_playable_points(self.color):
-            return None, board.calculate_color_points(color)
+    def minimax(self, board: Board, maximizing_player: bool, color: DiscEnum, depth: int = 3, alpha: float = float('-inf'), beta: float = float('inf')):
+        if depth == 0 or not board.get_all_playable_points(color):
+            return None, board.mobility_heuristic(color) 
+        
+        if board.is_game_over():
+            return None, board.winner_heuristic(color)
 
         best_move = None
 

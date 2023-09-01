@@ -4,3 +4,4 @@ class DiscEnum(Enum):
     EMPTY = ' '
     WHITE = '0'
     BLACK = '1'
+    TIE = 'T'

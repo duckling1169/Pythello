@@ -1,19 +1,21 @@
-from game.point import Point
-from game.enums import DiscEnum
 from game.board import Board
+from game.enums import DiscEnum
+from game.point import Point
 from players.player import Player
-import random
-import math
 import copy
+import math
+import random
+from time import perf_counter
 
 class MCTSPlayer(Player):
 
-    def __init__(self, color: DiscEnum, iterations: int = 500):
+    def __init__(self, color:DiscEnum, iterations: int = 1000):
         super().__init__(color)
         self.iterations = iterations
 
     def mcts(self, root_node):
         for _ in range(self.iterations):
+
             # Selection Phase
             selected_node = self.select(root_node)
 
@@ -32,22 +34,23 @@ class MCTSPlayer(Player):
     def select(self, node):
         C = 1.0  # UCB1 exploration constant
         
-        # Check if there are child nodes
         if not node.children:
-            return node  # If there are no children, return the current node
+            return node 
         
         # Initialize a list to store child nodes with combined scores
         children_with_combined_scores = []
         
         # Calculate mobility score for the current game state
-        mobility_score = self.mobility_heuristic(node.state)
+        mobility_score = node.state.mobility_heuristic(node.color)
+
+        # Calculate special squares score for the current game state
+        square_heuristic = node.state.square_heuristic(node.color)
         
         for child in node.children:
             # Calculate UCB1 score for the child
             ucb1_score = child.value / (child.visits + 1e-6) + C * (math.sqrt(math.log(node.visits + 1) / (child.visits + 1e-6)))
             
-            # Combine UCB1 score and mobility score to determine the child's combined score
-            combined_score = ucb1_score + mobility_score
+            combined_score = ucb1_score + mobility_score + square_heuristic
             
             # Store the child node along with its combined score
             children_with_combined_scores.append((child, combined_score))
@@ -55,7 +58,7 @@ class MCTSPlayer(Player):
         # Select the child node with the highest combined score for exploration
         best_child = max(children_with_combined_scores, key=lambda x: x[1])
         
-        return best_child[0]  # Return the best child node
+        return best_child[0] # Return the best child node
 
     def expand(self, node):
         legal_moves = node.state.get_all_playable_points(node.color)
@@ -77,12 +80,12 @@ class MCTSPlayer(Player):
             if legal_moves:
                 random_move = random.choice(legal_moves)
                 current_state.can_place_disc_and_flip(random_move, node.color)
-                node.color = DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE 
+                node.color = DiscEnum.BLACK if node.color == DiscEnum.WHITE else DiscEnum.WHITE 
             else:
-                node.color = DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
+                node.color = DiscEnum.BLACK if node.color == DiscEnum.WHITE else DiscEnum.WHITE
 
         # Game is over, determine the winner
-        return current_state.get_winner(current_state)
+        return current_state.winner_heuristic(node.color)
 
     def backpropagate(self, node, result):
         while node is not None:
@@ -98,6 +101,7 @@ class MCTSPlayer(Player):
             return best_child.move
 
     def play(self, board: Board) -> Point:
+        start = perf_counter()
         # Initialize the root node with the current game state
         root_node = Node(board, self.color)
 
@@ -109,14 +113,7 @@ class MCTSPlayer(Player):
 
         # Return the move associated with the best child node
         return best_move
-
-    def mobility_heuristic(self, game_state):
-        player_legal_moves = game_state.get_all_playable_points(self.color)
-        opponent_legal_moves = game_state.get_all_playable_points(
-            DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
-        )
-        return len(player_legal_moves) - len(opponent_legal_moves)
-
+    
 class Node:
     def __init__(self, state, color, move=None):
         self.state = state

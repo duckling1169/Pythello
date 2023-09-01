@@ -1,5 +1,5 @@
-from game.enums import DiscEnum
 from game.board import Board
+from game.enums import DiscEnum
 from game.point import Point
 
 class Player:
