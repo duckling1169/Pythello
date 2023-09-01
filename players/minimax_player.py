@@ -13,7 +13,7 @@ class MiniMaxPlayer(Player):
         best_move, _ = self.minimax(board, True, self.color)
         return best_move
 
-    def minimax(self, board: Board, maximizing_player: bool, color: DiscEnum, depth: int = 8, alpha: float = float('-inf'), beta: float = float('inf')):
+    def minimax(self, board: Board, maximizing_player: bool, color: DiscEnum, depth: int = 7, alpha: float = float('-inf'), beta: float = float('inf')):
         if depth == 0 or board.is_game_over() or not board.get_all_playable_points(self.color):
             return None, board.calculate_color_points(color)
 
