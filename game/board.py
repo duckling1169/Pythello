@@ -1,5 +1,4 @@
 from game.point import Point
-from game.disc import Disc
 from game.enums import DiscEnum
 
 class Board():
@@ -19,10 +18,18 @@ class Board():
         for color, points in Board.STARTING_POINTS.items():
             for point in points:
                 self.grid[point.y][point.x] = color.value
-    
+
+    def is_game_over(self) -> bool:
+        black_points = self.get_all_playable_points(DiscEnum.BLACK)
+        white_points = self.get_all_playable_points(DiscEnum.WHITE)
+        return not any(black_points) and not any(white_points)
+
+    def is_point_in_bounds(self, point:Point):
+        return point.x < len(self.grid) and point.x > -1 and point.y < len(self.grid) and point.y > -1
+
     def can_place_disc_and_flip(self, point:Point, color:DiscEnum, perform_flip:bool=True):
         if self.grid[point.y][point.x] != DiscEnum.EMPTY.value:
-            return False
+            return []
 
         def flip_discs_in_direction(dx, dy):
             x, y = point.x + dx, point.y + dy
@@ -50,7 +57,7 @@ class Board():
         flipped_discs = [disc for direction in directions if (disc := flip_discs_in_direction(direction.x, direction.y))]
 
         if not flipped_discs:
-            return False
+            return []
         
         # Place the disc and perform flips
         if perform_flip:
@@ -60,18 +67,30 @@ class Board():
                 for point in path:
                     self.grid[point.y][point.x] = color.value
 
-        return True
-
-    def is_point_in_bounds(self, point:Point):
-        return point.x < len(self.grid) and point.x > -1 and point.y < len(self.grid) and point.y > -1
+        return flipped_discs
 
     def get_all_playable_points(self, color: DiscEnum) -> [Point]:
         return [Point(x, y) for x in range(len(self.grid)) \
                 for y in range(len(self.grid[0])) \
                 if self.can_place_disc_and_flip(Point(x, y), color, False)]
 
-    def calculate_player_points(self, player):
-        return sum(row.count(player.color.value) for row in self.grid)
+    def calculate_color_points(self, color):
+        return sum(row.count(color.value) for row in self.grid)
+
+    def get_empty_spots(self):
+        return sum(1 for x in range(len(self.grid)) \
+            for y in range(len(self.grid[0])) \
+            if self.grid[y][x] == DiscEnum.EMPTY.value)
+
+    def get_winner(self, color:DiscEnum):
+        black_points = self.calculate_color_points(DiscEnum.BLACK)
+        white_points = self.calculate_color_points(DiscEnum.WHITE)
+
+        if black_points == white_points:
+            return 0
+        
+        winner = DiscEnum.BLACK if black_points > white_points else DiscEnum.WHITE
+        return 1 if winner == color else -1
 
     def __str__(self):
         scale = self.scale
