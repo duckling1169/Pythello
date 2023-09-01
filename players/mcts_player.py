@@ -36,8 +36,24 @@ class MCTSPlayer(Player):
         if not node.children:
             return node  # If there are no children, return the current node
         
-        children_with_values = [(child, child.value / (child.visits + 1e-6) + C * (math.sqrt(math.log(node.visits + 1) / (child.visits + 1e-6)))) for child in node.children]
-        best_child = max(children_with_values, key=lambda x: x[1])
+        # Initialize a list to store child nodes with combined scores
+        children_with_combined_scores = []
+        
+        # Calculate mobility score for the current game state
+        mobility_score = self.mobility_heuristic(node.state)
+        
+        for child in node.children:
+            # Calculate UCB1 score for the child
+            ucb1_score = child.value / (child.visits + 1e-6) + C * (math.sqrt(math.log(node.visits + 1) / (child.visits + 1e-6)))
+            
+            # Combine UCB1 score and mobility score to determine the child's combined score
+            combined_score = ucb1_score + mobility_score
+            
+            # Store the child node along with its combined score
+            children_with_combined_scores.append((child, combined_score))
+        
+        # Select the child node with the highest combined score for exploration
+        best_child = max(children_with_combined_scores, key=lambda x: x[1])
         
         return best_child[0]  # Return the best child node
 
@@ -55,18 +71,18 @@ class MCTSPlayer(Player):
             return None
     
     def simulate(self, node):
-        current_state = copy.deepcopy(node.state) 
+        current_state = copy.deepcopy(node.state)
         while not current_state.is_game_over():
             legal_moves = current_state.get_all_playable_points(node.color)
             if legal_moves:
                 random_move = random.choice(legal_moves)
                 current_state.can_place_disc_and_flip(random_move, node.color)
-                node.color = DiscEnum.WHITE if node.color == DiscEnum.BLACK else DiscEnum.BLACK
+                node.color = DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE 
             else:
-                node.color = DiscEnum.WHITE if node.color == DiscEnum.BLACK else DiscEnum.BLACK
+                node.color = DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
 
-        # Game over
-        winner = current_state.get_winner(self.color)
+        # Game is over, determine the winner
+        winner = current_state.get_winner(current_state)
         return winner
 
     def backpropagate(self, node, result):
@@ -94,6 +110,14 @@ class MCTSPlayer(Player):
 
         # Return the move associated with the best child node
         return best_move
+
+    def mobility_heuristic(self, game_state):
+        player_legal_moves = game_state.get_all_playable_points(self.color)
+        opponent_legal_moves = game_state.get_all_playable_points(
+            DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
+        )
+        mobility_score = len(player_legal_moves) - len(opponent_legal_moves)
+        return mobility_score
 
 class Node:
     def __init__(self, state, color, move=None):
