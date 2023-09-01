@@ -1,7 +1,7 @@
-from players.player import Player
 from game.enums import DiscEnum
 from game.board import Board
 from game.point import Point
+from players.player import Players
 import random
 
 class RandomPlayer(Player):
