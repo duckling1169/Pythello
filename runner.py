@@ -84,7 +84,6 @@ class Runner:
             for color, count in data.items():
                 print(f'\t{name} as {color}: {count}/{games}')
 
-
 Runner()
 
 class Tester:
