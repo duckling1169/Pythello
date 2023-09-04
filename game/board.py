@@ -202,6 +202,25 @@ class Board():
         # Assign a score based on whether the color is the winner or not
         return 1 if winner == color else -1
 
+    def points_heuristic(self, color: Color) -> int:
+        """
+        Calculate a heuristic value for the given player's position on the board.
+
+        Args:
+            color (Color): The color of the player for whom the heuristic is calculated.
+
+        Returns:
+            int: The heuristic value representing the difference in points between the player
+                and their opponent. Positive values favor the player; negative values favor the opponent.
+        """
+        opponent_color = Color.BLACK if color == Color.WHITE else Color.WHITE
+        points = self.get_points_for_color(color)
+        opponent_points = self.get_points_for_color(opponent_color)
+
+        threshold = 0.8 * Board.SIZE
+        diff = points - opponent_points if (points + opponent_points) > threshold else opponent_points - points
+        return diff
+
     def mobility_heuristic(self, color: Color) -> int:
         """
         Calculate the mobility heuristic for the specified color.

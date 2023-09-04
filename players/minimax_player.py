@@ -28,7 +28,7 @@ class MiniMaxPlayer(Player):
         """
         # If the depth limit is reached, return None and a score of 0.
         if depth == 0:
-            return None, 0 # (board.square_heuristic(color) + board.stability_heuristic(color)) * 1 if color == self.color else -1
+            return None, 0 
 
         best_move, best_score = None, float('-inf')
 
@@ -51,6 +51,8 @@ class MiniMaxPlayer(Player):
 
             # Calculate the score based on heuristics and the opposite player's score
             score = new_square - existing_board_square_heuristic + new_stability - existing_board_stability_heuristic + opposite_score
+
+            print(color, move, score, new_square-existing_board_square_heuristic, new_stability-existing_board_stability_heuristic, opposite_score)
 
             if score == best_score:
                 # Introduce randomness for equally scored moves
