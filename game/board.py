@@ -1,42 +1,128 @@
-from game.enums import DiscEnum
 from game.point import Point
+from game.enums import Color
 
 class Board():
 
     STARTING_POINTS = {
-        DiscEnum.BLACK: [Point(3, 3), Point(4, 4)],
-        DiscEnum.WHITE: [Point(3, 4), Point(4, 3)]
+        Color.BLACK: [Point(3, 3), Point(4, 4)],
+        Color.WHITE: [Point(3, 4), Point(4, 3)]
     }
     
     SIZE = 8
 
-    def __init__(self, size, scale:int=1):
+    def __init__(self, scale:int = 1):
         self.scale = scale
 
-        self.grid = [[DiscEnum.EMPTY.value] * size for _ in range(size)]
+        self.grid = [[Color.EMPTY.value] * Board.SIZE for _ in range(Board.SIZE)]
 
         for color, points in Board.STARTING_POINTS.items():
             for point in points:
                 self.grid[point.y][point.x] = color.value
 
+# BOOLEANS
     def is_game_over(self) -> bool:
-        black_points = self.get_all_playable_points(DiscEnum.BLACK)
-        white_points = self.get_all_playable_points(DiscEnum.WHITE)
-        return not any(black_points) and not any(white_points)
+        """
+        Check if the game is over.
 
-    def is_point_in_bounds(self, point:Point):
-        return point.x < len(self.grid) and point.x > -1 and point.y < len(self.grid) and point.y > -1
+        Returns:
+            bool: True if the game is over, False otherwise.
+        """
+        black_legal_moves = self.get_legal_moves(Color.BLACK)
+        white_legal_moves = self.get_legal_moves(Color.WHITE)
+        return not any(black_legal_moves) and not any(white_legal_moves)
 
-    def can_place_disc_and_flip(self, point:Point, color:DiscEnum, perform_flip:bool=True):
-        if self.grid[point.y][point.x] != DiscEnum.EMPTY.value:
+    def is_valid_position(self, point) -> bool:
+        """
+        Check if a point is within the valid board boundaries.
+
+        Args:
+            point (Point): The point to be checked.
+
+        Returns:
+            bool: True if the point is within the valid board boundaries, False otherwise.
+        """
+        return 0 <= point.x < self.SIZE and 0 <= point.y < self.SIZE
+
+    def is_stable_piece(self, point:Point, color:Color) -> bool:
+        """
+        Check if a piece at the specified point is stable for the given color.
+
+        A piece is considered stable if it is surrounded by walls or pieces of the same color in at least four unique directions.
+
+        Args:
+            point (Point): The point to check for stability.
+            color (Color): The color of the piece to be checked for stability.
+
+        Returns:
+            bool: True if the piece is stable, False otherwise.
+        """
+        if self.grid[point.y][point.x] != color.value:
+            return False
+
+        # Define the eight unique directions as Points
+        directions = [Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1),
+                    Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)]
+
+        # Count of unique directions where the piece is located
+        unique_directions = set()  # Use a set to store unique directions
+        color = self.grid[point.y][point.x]
+
+        for direction in directions:
+            current_point = point.__copy__()
+
+            # Flag to track if the piece is stable in this direction
+            is_stable = True
+
+            walls = 0
+            want_opposite_color = True
+            while self.is_valid_position(current_point):
+                current_color = self.grid[current_point.y][current_point.x]
+
+                if current_color == Color.EMPTY.value:
+                    walls -= 1
+                    if walls == -1:
+                        is_stable = False  # An empty square makes it not stable
+                        break
+
+                if want_opposite_color and current_color != color: # - - W B - - 
+                    walls += 1
+                    want_opposite_color = True
+
+                if not want_opposite_color and current_point == color: # - - W B W - - -
+                    walls += 1
+                    want_opposite_color = False
+
+                current_point.shift(direction.x, direction.y)
+
+            if is_stable:
+                # Check if the direction or its mirrored version is already in the set
+                mirrored_direction = Point(-direction.x, -direction.y)
+                if direction not in unique_directions and mirrored_direction not in unique_directions:
+                    unique_directions.add(direction)
+
+        # Check if the piece is at the end of at least four unique directions
+        if len(unique_directions) == 4:
+            return True
+
+        return False
+
+# HELPERS
+
+    def get_legal_moves(self, color: Color) -> [Point]:
+        return [Point(x, y) for x in range(Board.SIZE) \
+                for y in range(Board.SIZE) \
+                if self.place_and_flip_discs(Point(x, y), color, False)]
+
+    def place_and_flip_discs(self, point:Point, color:Color, perform_flip:bool = True) -> [Point]:
+        if self.grid[point.y][point.x] != Color.EMPTY.value:
             return []
 
         def flip_discs_in_direction(dx, dy):
             x, y = point.x + dx, point.y + dy
             flipped_discs = []
 
-            while self.is_point_in_bounds(Point(x, y)):
-                if self.grid[y][x] == DiscEnum.EMPTY.value:
+            while self.is_valid_position(Point(x, y)):
+                if self.grid[y][x] == Color.EMPTY.value:
                     return []
 
                 if self.grid[y][x] == color.value:
@@ -69,67 +155,145 @@ class Board():
 
         return flipped_discs
 
-    def get_all_playable_points(self, color: DiscEnum) -> [Point]:
-        return [Point(x, y) for x in range(len(self.grid)) \
-                for y in range(len(self.grid[0])) \
-                if self.can_place_disc_and_flip(Point(x, y), color, False)]
-
-    def calculate_color_points(self, color):
+    def get_points_for_color(self, color:Color) -> int:
         return sum(row.count(color.value) for row in self.grid)
 
-    def get_empty_spots(self):
-        return sum(1 for x in range(len(self.grid)) \
-            for y in range(len(self.grid[0])) \
-            if self.grid[y][x] == DiscEnum.EMPTY.value)
+    def get_closest_corner(self, point: Point) -> Point:
+        # Define the coordinates of the four corners
+        corners = [Point(0, 0), Point(0, 7), Point(7, 0), Point(7, 7)]
+        
+        # Initialize variables to store the closest corner and its distance
+        closest_corner = None
+        closest_distance = float('inf')  # Initialize with positive infinity
+        
+        # Calculate the distance from the given point to each corner
+        for corner in corners:
+            distance = Point.dist(point.x, point.y, corner.x, corner.y)
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_corner = corner
+        
+        return closest_corner
+    
+# HEURISTICS
 
-    def winner_heuristic(self, color:DiscEnum):
-        black_points = self.calculate_color_points(DiscEnum.BLACK)
-        white_points = self.calculate_color_points(DiscEnum.WHITE)
+    def winner_heuristic(self, color: Color) -> int:
+        """
+        Calculate the winner heuristic for the specified color.
 
+        The winner heuristic determines the outcome of the game based on the total number of points for each color.
+
+        Args:
+            color (Color): The color for which the winner heuristic is calculated.
+
+        Returns:
+            int: The winner heuristic score.
+        """
+        # Get the total number of points for both colors
+        black_points = self.get_points_for_color(Color.BLACK)
+        white_points = self.get_points_for_color(Color.WHITE)
+
+        # Determine the winner based on the total points
         if black_points == white_points:
             return 0
         
-        winner = DiscEnum.BLACK if black_points > white_points else DiscEnum.WHITE
+        winner = Color.BLACK if black_points > white_points else Color.WHITE
+
+        # Assign a score based on whether the color is the winner or not
         return 1 if winner == color else -1
 
-    def mobility_heuristic(self, player_color):
-        player_legal_moves = self.get_all_playable_points(player_color)
-        opponent_legal_moves = self.get_all_playable_points(
-            DiscEnum.BLACK if player_color == DiscEnum.WHITE else DiscEnum.WHITE
-        )
-        return len(player_legal_moves) - len(opponent_legal_moves)
+    def mobility_heuristic(self, color: Color) -> int:
+        """
+        Calculate the mobility heuristic for the specified color.
 
-    def square_heuristic(self, color):
-        # Assign values to the board positions (customize these values)
+        The mobility heuristic measures the difference in the number of legal moves between the player and the opponent.
+
+        Args:
+            color (Color): The color for which the mobility heuristic is calculated.
+
+        Returns:
+            int: The mobility heuristic score.
+        """
+        # Get the legal moves for the player and the opponent
+        player_legal_moves = self.get_legal_moves(color)
+        opponent_color = Color.BLACK if color == Color.WHITE else Color.WHITE
+        opponent_legal_moves = self.get_legal_moves(opponent_color)
+
+        # Calculate the difference in the number of legal moves
+        mobility_score = len(player_legal_moves) - len(opponent_legal_moves)
+
+        return mobility_score
+
+    def square_heuristic(self, color:Color) -> int:
+        """
+        Calculate the square heuristic for the specified color.
+
+        The square heuristic assigns values to different board positions based on their proximity to special squares and the color of the pieces.
+
+        Args:
+            color (Color): The color for which the square heuristic is calculated.
+
+        Returns:
+            int: The square heuristic score.
+        """
+        # Assign values to the board positions 
         corner_value = 10
-        x_square_value = -5
-        c_square_value = -2
-        
+        c_square_value = -5
+        x_square_value = -2
+
         # Define the board positions
-        corners = [(0, 0), (0, 7), (7, 0), (7, 7)]
-        x_squares = [(1, 1), (1, 6), (6, 1), (6, 6)]
-        c_squares = [(0, 1), (1, 0), (6, 0), (7, 1), (0, 6), (1, 7), (6, 7), (7, 6)]
+        corners = [Point(0, 0), Point(0, 7), Point(7, 0), Point(7, 7)]
+        c_squares = [Point(1, 1), Point(1, 6), Point(6, 1), Point(6, 6)]
+        x_squares = [Point(0, 1), Point(1, 0), Point(6, 0), Point(0, 6), Point(7, 1), Point(1, 7), Point(6, 7), Point(7, 6)]
 
         # Initialize the heuristic value
         heuristic_value = 0
 
         # Iterate through each board position and assign custom values based on the color
-        for y in range(len(self.grid)):
-            for x in range(len(self.grid)):
-                placed_color = self.grid[x][y]
-                position = (x, y)
-                if placed_color == DiscEnum.EMPTY.value:
-                    pass  # You can add more custom logic for empty positions if needed
+        for y in range(Board.SIZE):
+            for x in range(Board.SIZE):
+                placed_color = self.grid[y][x]
+                if placed_color == Color.EMPTY.value:
+                    continue 
+
+                point = Point(x,y)
                 mod = 1 if placed_color == color.value else -1
-                if position in corners:
-                    heuristic_value += corner_value * mod
-                elif position in x_squares:
-                    heuristic_value += x_square_value * mod
-                elif position in c_squares:
-                    heuristic_value += c_square_value * mod
+
+                closest_corner = self.get_closest_corner(point)
+                corner_color = self.grid[closest_corner.y][closest_corner.x]
+
+                if corner_color == color.value: # everything should be positive
+                    if point in corners:
+                        heuristic_value += corner_value * 1  # Highly value corner
+                    elif point in c_squares:                            
+                        heuristic_value += 0 # c_square_value * -1  # Devalue c-square
+                    elif point in x_squares:
+                        heuristic_value += 0 # x_square_value * -1  # Devalue x-square
+                else:
+                    if point in corners:
+                        heuristic_value += corner_value * mod  # Highly value corner
+                    elif point in c_squares:
+                        heuristic_value += c_square_value * mod  # Devalue c-square
+                    elif point in x_squares:
+                        heuristic_value += x_square_value * mod  # Devalue x-square
 
         return heuristic_value
-    
+
+    def stability_heuristic(self, color: Color) -> int:
+        """
+        Calculate the stability heuristic for the specified color.
+
+        The stability heuristic represents the number of stable pieces for the given color on the board.
+
+        Args:
+            color (Color): The color for which stability is calculated.
+
+        Returns:
+            int: The stability heuristic score.
+        """
+        stability_heuristic = sum(1 for y in range(Board.SIZE) for x in range(Board.SIZE) if self.is_stable_piece(Point(y, x), color))
+        return stability_heuristic
+
     def __str__(self):
         scale = self.scale
         grid = self.grid
