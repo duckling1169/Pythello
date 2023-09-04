@@ -80,3 +80,16 @@ def mobility_heuristic(board: Board, color: Color) -> int:
         int: The mobility heuristic value.
     """
     return board.mobility_heuristic(color)
+
+def points_heuristic(board: Board, color: Color) -> int:
+    """
+    Calculate the points heuristic for the specified color.
+
+    Args:
+        board (Board): The game board.
+        color (Color): The color for which the heuristic is calculated.
+
+    Returns:
+        int: The point heuristic value.
+    """
+    return board.points_heuristic(color)

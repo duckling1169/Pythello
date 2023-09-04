@@ -5,7 +5,7 @@ from players.player import Player
 from players.random_player import RandomPlayer
 from players.minimax_player import MiniMaxPlayer
 from players.heuristics_players import HeuristicPlayer
-from players.heuristics_players import square_heuristic, mobility_heuristic, stability_heuristic
+from players.heuristics_players import square_heuristic, mobility_heuristic, stability_heuristic, points_heuristic
 
 import copy
 from time import perf_counter
@@ -13,14 +13,13 @@ from time import perf_counter
 class Runner:
 
     def __init__(self):
-        # Runner.compare_players(HeuristicPlayer(Color.WHITE, square_heuristic), RandomPlayer(Color.BLACK), 100)
-        # Runner.compare_players(HeuristicPlayer(Color.WHITE, mobility_heuristic), RandomPlayer(Color.BLACK), 100)
-        # Runner.compare_players(HeuristicPlayer(Color.WHITE, stability_heuristic), RandomPlayer(Color.BLACK), 100)
+        Runner.compare_players(HeuristicPlayer(Color.WHITE, square_heuristic), RandomPlayer(Color.BLACK), 1000)
+        Runner.compare_players(HeuristicPlayer(Color.WHITE, mobility_heuristic), RandomPlayer(Color.BLACK), 1000)
+        Runner.compare_players(HeuristicPlayer(Color.WHITE, stability_heuristic), RandomPlayer(Color.BLACK), 1000)
+        Runner.compare_players(HeuristicPlayer(Color.WHITE, points_heuristic), RandomPlayer(Color.BLACK), 1000)
 
-        # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 1), RandomPlayer(Color.BLACK), 100)
-        # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 2), RandomPlayer(Color.BLACK), 100)
-        Runner.compare_players(MiniMaxPlayer(Color.WHITE, 1), RandomPlayer(Color.BLACK), 100)
-        Runner.compare_players(MiniMaxPlayer(Color.WHITE, 2), MiniMaxPlayer(Color.BLACK, 1), 100)
+        # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 2), RandomPlayer(Color.BLACK), 1000, True)
+
     
     @staticmethod
     def play_game(players:[Player, Player], show_game:bool=False):
@@ -78,7 +77,7 @@ class Runner:
         return winner
 
     @staticmethod
-    def compare_players(player1:Player, player2:Player, games:int = 10, show_game:bool = False):
+    def compare_players(player1:Player, player2:Player, games:int = 10, show_game:bool = False, break_at_loss:bool = False):
         """
         Compare two players in a series of games and report the results.
 
@@ -88,6 +87,9 @@ class Runner:
             games (int, optional): The number of games to play (default is 10).
             show_game (bool, optional): Whether to display the game during play (default is False).
         """
+        # Get the start time
+        start_time = perf_counter()
+
         # Initialize a dictionary to store the results
         winners_dict = {}
 
@@ -95,6 +97,9 @@ class Runner:
         for _ in range(games):
             # Play a game between player1 and player2
             winner = Runner.play_game([player1, player2], show_game)
+
+            if break_at_loss and winner != player1:
+                break
 
             # Determine the category of the result (Win, Tie, or Loss)
             category = 'Tie' if winner is None else type(winner).__name__
@@ -107,7 +112,8 @@ class Runner:
             winners_dict[category][color] += 1
 
         # Print the results
-        print(f'\n---------------------------\nçResults from {games} games:')
+        s = f'Results from {games} games in {round(perf_counter() - start_time, 2)} secs:'
+        print('-'*len(s) + f'\n{s}')
 
         for name, data in winners_dict.items():
             for color, count in data.items():
