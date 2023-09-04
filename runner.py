@@ -19,7 +19,8 @@ class Runner:
 
         # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 1), RandomPlayer(Color.BLACK), 100)
         # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 2), RandomPlayer(Color.BLACK), 100)
-        Runner.compare_players(MiniMaxPlayer(Color.WHITE, 1), MiniMaxPlayer(Color.BLACK, 1), 100)
+        Runner.compare_players(MiniMaxPlayer(Color.WHITE, 1), RandomPlayer(Color.BLACK), 100)
+        Runner.compare_players(MiniMaxPlayer(Color.WHITE, 2), MiniMaxPlayer(Color.BLACK, 1), 100)
     
     @staticmethod
     def play_game(players:[Player, Player], show_game:bool=False):

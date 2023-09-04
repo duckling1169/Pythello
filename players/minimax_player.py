@@ -26,18 +26,15 @@ class MiniMaxPlayer(Player):
         Returns:
             Tuple[Point, int]: The best move and its associated score.
         """
+        # If the depth limit is reached, return None and a score of 0.
+        if depth == 0:
+            return None, 0 # (board.square_heuristic(color) + board.stability_heuristic(color)) * 1 if color == self.color else -1
+
+        best_move, best_score = None, float('-inf')
+
         # Calculate existing heuristic values for the current player
         existing_board_square_heuristic = board.square_heuristic(color)
         existing_board_stability_heuristic = board.stability_heuristic(color)
-        
-        # Adjust the score based on the current player's color
-        mod = 1 if color == self.color else -1
-
-        # If the depth limit is reached, return None and a score of 0.
-        if depth == 0:
-            return None, (existing_board_square_heuristic + existing_board_stability_heuristic) * mod
-
-        best_move, best_score = None, float('-inf')
 
         for move in board.get_legal_moves(color):
             board_copy = copy.deepcopy(board)
@@ -55,8 +52,6 @@ class MiniMaxPlayer(Player):
             # Calculate the score based on heuristics and the opposite player's score
             score = new_square - existing_board_square_heuristic + new_stability - existing_board_stability_heuristic + opposite_score
 
-            # print(move, color, best_score, score)
-
             if score == best_score:
                 # Introduce randomness for equally scored moves
                 best_move = random.choice([best_move, move])
@@ -64,5 +59,6 @@ class MiniMaxPlayer(Player):
                 # Update the best move if a better one is found
                 best_score, best_move = score, move
 
-        best_score *= mod
+        # Adjust the score based on the current player's color
+        best_score *= 1 if color == self.color else -1
         return best_move, best_score
