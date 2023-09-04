@@ -1,62 +1,52 @@
 from game.point import Point
-from game.enums import DiscEnum
+from game.enums import Color
 from game.board import Board
 from players.player import Player
 import numpy as np
 import random
+import copy
 
 from players.random_player import RandomPlayer
 
 class RandomLearningPlayer(Player):
 
-    def __init__(self, color:DiscEnum, num_games:int = 100):
+    def __init__(self, color: Color, num_games: int = 100):
         super().__init__(color)
 
         print(f'Learning from {num_games} games.')
 
+        self.num_games = num_games
+        self.game_boards = [[] for _ in range(num_games)]  # List to store boards for each game
         self.custom_values = np.zeros((Board.SIZE, Board.SIZE), dtype=float)
-        wins, losses, draws = self.play_games(num_games)
+        wins, losses, draws = self.play_games()
 
         print(f'Results: Wins: {wins}, losses: {losses}, draws: {draws}.')
 
-    def play_games(self, num_games: int, exploration_rate: float = 0.5):
+    def play_games(self):
         wins = 0
         losses = 0
         draws = 0
 
-        for i in range(num_games):
+        for i in range(self.num_games):
             # Initialize the game board
-            board = Board(Board.SIZE)
+            board = Board()
 
             # Create a random bot as the opponent
-            opponent_color = DiscEnum.BLACK if self.color == DiscEnum.WHITE else DiscEnum.WHITE
-            opponent = RandomPlayer(opponent_color)  
+            opponent_color = Color.BLACK if self.color == Color.WHITE else Color.WHITE
+            opponent = RandomPlayer(opponent_color)
 
+            move_num = 0
             while not board.is_game_over():
-                legal_moves = board.get_all_playable_points(self.color)
+                # Handle the RandomLearningPlayer's move
+                self.handle_player_move(board, self.color, move_num)
+                move_num += 1
 
-                if legal_moves:
-                    if random.random() < exploration_rate * ((num_games - i)/num_games):
-                        # Explore: Randomly select a move
-                        move = random.choice(legal_moves)
-                    else:
-                        # Exploit: Select the move with the highest custom value
-                        move = self.select_best_move(legal_moves)
+                # Handle the opponent's move
+                self.handle_player_move(board, opponent.color, move_num)
+                move_num += 1
 
-                    # Make the move on the board for the RandomLearningPlayer
-                    board.can_place_disc_and_flip(move, self.color)
-
-                # Make the move for the opponent (RandomPlayer)
-                legal_moves = board.get_all_playable_points(opponent.color)
-
-                if legal_moves:
-                    opponent_move = opponent.play(board)
-                    board.can_place_disc_and_flip(opponent_move, opponent.color)
-
-            # Evaluate the game outcome and update custom values
+            # Evaluate the final game outcome and update wins, losses, and draws
             outcome = board.winner_heuristic(self.color)
-            self.evaluate_and_update(board, outcome)
-
             if outcome == 0:
                 draws += 1
             elif outcome == -1:
@@ -66,17 +56,24 @@ class RandomLearningPlayer(Player):
 
         return wins, losses, draws
 
-    def evaluate_and_update(self, board, outcome):
-        for x in range(Board.SIZE):
-            for y in range(Board.SIZE):
-                if board.grid[y][x] == self.color.value:
-                    # Increase the value for squares where the random player placed discs
-                    self.custom_values[y][x] += outcome
-                elif board.grid[y][x] != DiscEnum.EMPTY.value:
-                    # Decrease the value for squares where the opponent placed discs
-                    self.custom_values[y][x] -= outcome
+    def handle_player_move(self, board:Board, player_color:Color, move_num):
+        legal_moves = board.get_legal_moves(player_color)
 
-    def select_best_move(self, legal_moves):
+        if legal_moves:
+            # Always select a random move during training
+            move = random.choice(legal_moves)
+
+            # Make a copy of the board before making the move
+            board_copy = copy.deepcopy(board)
+            board_copy.place_and_flip_discs(move, player_color)
+
+            # Store the board for this move in the game_boards list
+            self.game_boards[move_num].append(board_copy)
+
+            # Make the move on the original board
+            board.place_and_flip_discs(move, player_color)
+
+    def select_best_move(self, board:Board, legal_moves):
         best_move = None
         best_value = -float("inf")
 
@@ -89,13 +86,16 @@ class RandomLearningPlayer(Player):
         return best_move
 
     def play(self, board: Board) -> Point:
-        # Get all legal moves for the current player
-        legal_moves = board.get_all_playable_points(self.color)
+        
+        b = [board for board in self.game_boards[0]]
+
+        print(len(b))
+
+        legal_moves = board.get_legal_moves(self.color)
 
         if not legal_moves:
             return None  # No legal moves available
 
-        # Choose the best move based on custom values
-        best_move = self.select_best_move(legal_moves)
+        # Always select a random move during play
+        return self.select_best_move(board, legal_moves)
 
-        return best_move
