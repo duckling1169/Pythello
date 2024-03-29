@@ -6,9 +6,9 @@ import random
 
 class RandomPlayer(Player):
 
-    def __init__(self, color:Color):
+    def __init__(self, color: Color):
         super().__init__(color)
 
-    def play(self, board:Board) -> Point:
+    def play(self, board: Board) -> Point:
         return random.choice(board.get_legal_moves(self.color))
     
