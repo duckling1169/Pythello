@@ -13,14 +13,15 @@ from time import perf_counter
 class Runner:
 
     def __init__(self):
-        Runner.compare_players(HeuristicPlayer(Color.WHITE, square_heuristic), RandomPlayer(Color.BLACK), 1000)
-        Runner.compare_players(HeuristicPlayer(Color.WHITE, mobility_heuristic), RandomPlayer(Color.BLACK), 1000)
-        Runner.compare_players(HeuristicPlayer(Color.WHITE, stability_heuristic), RandomPlayer(Color.BLACK), 1000)
-        Runner.compare_players(HeuristicPlayer(Color.WHITE, points_heuristic), RandomPlayer(Color.BLACK), 1000)
+        # Runner.compare_players(HeuristicPlayer(Color.WHITE, square_heuristic), RandomPlayer(Color.BLACK), 100)
+        # Runner.compare_players(HeuristicPlayer(Color.WHITE, mobility_heuristic), RandomPlayer(Color.BLACK), 100)
+        # Runner.compare_players(HeuristicPlayer(Color.WHITE, stability_heuristic), RandomPlayer(Color.BLACK), 100)
+        # Runner.compare_players(HeuristicPlayer(Color.WHITE, points_heuristic), RandomPlayer(Color.BLACK), 100)
 
-        # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 2), RandomPlayer(Color.BLACK), 1000, True)
+        # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 2), RandomPlayer(Color.BLACK), 10, show_game=True) # 6secs. 9/10
+        Runner.compare_players(MiniMaxPlayer(Color.WHITE, 3), RandomPlayer(Color.BLACK), 10, show_game=True) # 33secs. 9/10
+        # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 4), RandomPlayer(Color.BLACK), 10)
 
-    
     @staticmethod
     def play_game(players:[Player, Player], show_game:bool=False):
         """
@@ -118,8 +119,6 @@ class Runner:
         for name, data in winners_dict.items():
             for color, count in data.items():
                 print(f'\t{name} as {color}: {count}/{games}')
-
-Runner()
 
 class Tester:
 
@@ -231,4 +230,7 @@ class Tester:
         board = Board()
         return board.get_closest_corner(Point(1,1)) == Point(0,0) and board.get_closest_corner(Point(4,4)) == Point(7,7)
 
-# Tester(RandomPlayer(Color.WHITE))
+
+if __name__ == "__main__":
+    Runner()
+    # Tester(RandomPlayer(Color.WHITE))

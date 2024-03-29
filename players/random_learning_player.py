@@ -18,16 +18,16 @@ class RandomLearningPlayer(Player):
         self.num_games = num_games
         self.game_boards = [[] for _ in range(num_games)]  # List to store boards for each game
         self.custom_values = np.zeros((Board.SIZE, Board.SIZE), dtype=float)
-        wins, losses, draws = self.play_games()
+        wins, losses, draws = self.play_games(self.num_games)
 
         print(f'Results: Wins: {wins}, losses: {losses}, draws: {draws}.')
 
-    def play_games(self):
+    def play_games(self, num_games: int):
         wins = 0
         losses = 0
         draws = 0
 
-        for i in range(self.num_games):
+        for _ in range(num_games):
             # Initialize the game board
             board = Board()
 
@@ -37,11 +37,9 @@ class RandomLearningPlayer(Player):
 
             move_num = 0
             while not board.is_game_over():
-                # Handle the RandomLearningPlayer's move
                 self.handle_player_move(board, self.color, move_num)
                 move_num += 1
 
-                # Handle the opponent's move
                 self.handle_player_move(board, opponent.color, move_num)
                 move_num += 1
 
