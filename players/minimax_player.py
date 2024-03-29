@@ -8,7 +8,7 @@ from typing import List
 
 class MiniMaxPlayer(Player):
 
-    def __init__(self, color: Color, heuristic_name:str = "square_heuristic", max_depth:int = 1):
+    def __init__(self, color: Color, heuristic_name:str = "square_heuristic", max_depth:int = 2):
         """
         A player class implementing the MiniMax algorithm with heuristic evaluation.
 
