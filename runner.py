@@ -1,29 +1,36 @@
 from game.board import Board
 from game.enums import Color
-from game.point import Point
 from players.player import Player
 from players.random_player import RandomPlayer
 from players.minimax_player import MiniMaxPlayer
 from players.heuristics_players import HeuristicPlayer
-from players.heuristics_players import square_heuristic, mobility_heuristic, stability_heuristic, points_heuristic
 
-import copy
+from tests.board_tester import BoardTester
+from tests.heuristic_tester import HeuristicTester
+from typing import List, Type, Union
+
 from time import perf_counter
 
 class Runner:
 
     def __init__(self):
-        # Runner.compare_players(HeuristicPlayer(Color.WHITE, square_heuristic), RandomPlayer(Color.BLACK), 100)
-        # Runner.compare_players(HeuristicPlayer(Color.WHITE, mobility_heuristic), RandomPlayer(Color.BLACK), 100)
-        # Runner.compare_players(HeuristicPlayer(Color.WHITE, stability_heuristic), RandomPlayer(Color.BLACK), 100)
-        # Runner.compare_players(HeuristicPlayer(Color.WHITE, points_heuristic), RandomPlayer(Color.BLACK), 100)
-
-        # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 2), RandomPlayer(Color.BLACK), 10, show_game=True) # 6secs. 9/10
-        Runner.compare_players(MiniMaxPlayer(Color.WHITE, 3), RandomPlayer(Color.BLACK), 10, show_game=True) # 33secs. 9/10
+        Runner.play_all_heuristics(HeuristicPlayer, 100)
+        Runner.play_all_heuristics(MiniMaxPlayer, 100)
+        
         # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 4), RandomPlayer(Color.BLACK), 10)
+            
+    @staticmethod
+    def play_all_heuristics(player: Type[Player], games:int = 10, show_game:bool = False, break_at_loss:bool = False):
+        heuristic_functions = [func for func in dir(Board) if callable(getattr(Board, func)) and 'heuristic' in func ]
+        for func in heuristic_functions:
+            func_name = str(func)
+            print()
+            print(f'{func_name.replace('_', ' ').title()}')
+            print()
+            Runner.compare_players(player(Color.WHITE, func_name), RandomPlayer(Color.BLACK), games, show_game, break_at_loss)
 
     @staticmethod
-    def play_game(players:[Player, Player], show_game:bool=False):
+    def play_game(players: Union[Player, Player], show_game:bool=False):
         """
         Play a game between two players.
 
@@ -120,117 +127,19 @@ class Runner:
             for color, count in data.items():
                 print(f'\t{name} as {color}: {count}/{games}')
 
-class Tester:
-
-    def __init__(self, player):
-        func_list = [func for func in dir(Tester) if callable(getattr(Tester, func)) and 'test' in func ]
-
-        for func in func_list:
-            print(f'{func}: {getattr(Tester, func)(player)}')
-
-    def test_scale(player:Player):
-        board = Board(scale=2)
-        return board.scale == 2
-
-    def test_place_disc(player:Player):
-        board = Board()
-        res1 = any(board.place_and_flip_discs(Point(3, 2), Color.BLACK))
-        res2 = any(board.place_and_flip_discs(Point(4, 2), Color.BLACK))
-        return not res1 and res2
-
-    def test_board_copy(player:Player):
-        board = Board()
-        board2 = copy.deepcopy(board)
-        board.place_and_flip_discs(Point(3, 2), Color.BLACK)
-        board2.place_and_flip_discs(Point(4, 2), Color.BLACK)
-        return board != board2
-    
-    def test_all_playable_spots(player:Player):
-        board = Board()
-        points = board.get_legal_moves(Color.BLACK)
-        board.place_and_flip_discs(points[0], Color.BLACK)
-        points = board.get_legal_moves(Color.WHITE)
-        return points == [Point(2,3), Point(2,5), Point(4,5)]
-
-    def test_is_game_over(player:Player):
-        board = Board()
-        board2 = Board()
-        board.grid = [[Color.BLACK.value] * len(board.grid) for _ in range(len(board.grid))]
-        return board.is_game_over() and not board2.is_game_over()
-    
-    def test_diagonal_corner_placement(player:Player):
-        board = Board()
-        opponent_color = Color.WHITE if player.color == Color.BLACK else Color.BLACK
-        board.grid[1][1] = opponent_color.value # corners
-        board.grid[2][2] = player.color.value # corners
-        # Adding other option
-        board.grid[5][4] = opponent_color.value 
-
-        for _ in range(100):
-            placement_point = player.play(board)
-            if placement_point != Point(0, 0):
-                return False
-
-        return True
-
-    def test_line_corner_placement(player:Player):
-        board = Board()
-        opponent_color = Color.WHITE if player.color == Color.BLACK else Color.BLACK
-        board.grid[1][0] = opponent_color.value # corners
-        board.grid[2][0] = player.color.value # corners
-
-        # Adding other options
-        board.grid[5][4] = opponent_color.value 
-        board.grid[2][2] = opponent_color.value 
-        board.grid[3][1] = opponent_color.value 
-        board.grid[3][2] = opponent_color.value 
-
-        for _ in range(100):
-            placement_point = player.play(board)
-            if placement_point != Point(0, 0):
-                return False
-        return True
-
-    def test_square_heuristic(player:Player):
-        board = Board()
-        opponent_color = Color.WHITE if player.color == Color.BLACK else Color.BLACK
-        board.grid[0][0] = opponent_color.value # corner - 10
-        board.grid[1][0] = player.color.value # x square - 2
-        board.grid[1][1] = player.color.value # c square - 5
-
-        board.grid[3][3] = Color.EMPTY.value 
-        board.grid[4][3] = Color.EMPTY.value 
-        board.grid[3][4] = Color.EMPTY.value 
-        board.grid[4][4] = Color.EMPTY.value 
-
-        board2 = Board()
-        opponent_color = Color.WHITE if player.color == Color.BLACK else Color.BLACK
-        board2.grid[0][0] = player.color.value # corner + 1
-        board2.grid[1][0] = player.color.value # x square + 1
-        board2.grid[1][1] = player.color.value # c square + 1
-
-        board2.grid[3][3] = Color.EMPTY.value 
-        board2.grid[4][3] = Color.EMPTY.value 
-        board2.grid[3][4] = Color.EMPTY.value 
-        board2.grid[4][4] = Color.EMPTY.value 
-
-        return board.square_heuristic(player.color) == -17 and board2.square_heuristic(player.color) == 3
-    
-    def test_find_closest_corner(player:Player):
-        board = Board()
-        return Point(0,0) == board.get_closest_corner(Point(2,2))
-
-    def test_stability(player:Player):
-        board = Board()
-        board2 = Board()
-        board2.grid = [[player.color.value] * Board.SIZE for _ in range(Board.SIZE)]
-        return not board.is_stable_piece(Point(3, 3), Color.WHITE) and board2.is_stable_piece(Point(3, 3), player.color)
-
-    def test_closest_corner(player:Player):
-        board = Board()
-        return board.get_closest_corner(Point(1,1)) == Point(0,0) and board.get_closest_corner(Point(4,4)) == Point(7,7)
-
 
 if __name__ == "__main__":
+
+    # board = Board()
+    # player = MiniMaxPlayer(Color.BLACK, 3)
+    # board.grid[2][2] = Color.WHITE.value
+    # print(board)
+    # placement_point = player.play(board)
+    # print(board)
+    # print(placement_point)
+
     Runner()
-    # Tester(RandomPlayer(Color.WHITE))
+    # Runner.play_all_heuristics(10)
+    # BoardTester(RandomPlayer(Color.WHITE))
+    # HeuristicTester(RandomPlayer(Color.WHITE))
+

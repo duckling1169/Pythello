@@ -4,27 +4,38 @@ from game.point import Point
 from players.player import Player
 import random
 import copy
+from typing import List
 
 class MiniMaxPlayer(Player):
 
-    def __init__(self, color: Color, max_depth:int = 1, heuristic_name:str = "square_heuristic"):
+    def __init__(self, color: Color, heuristic_name:str = "square_heuristic", max_depth:int = 1):
         """
         A player class implementing the MiniMax algorithm with heuristic evaluation.
 
         Attributes:
             color (Color): The color of the player.
-            max_depth (int): The maximum depth to search in the MiniMax algorithm.
             heuristic_name (str): The name of the heuristic function to use.
+            max_depth (int): The maximum depth to search in the MiniMax algorithm.
             heuristic (function): The heuristic function to evaluate board states.
         """
-        self.max_depth = max_depth
         self.heuristic = getattr(Board, heuristic_name) if hasattr(Board, heuristic_name) else None
+        self.max_depth = max_depth
         super().__init__(color)
 
     def play(self, board: Board) -> Point:
-        return self.minimax_with_heuristics(board, self.color, self.max_depth, self.heuristic)[0]
+        """
+        Chooses the best move for the player using MiniMax with heuristics.
 
-    def minimax_with_heuristics(self, board: Board, color: Color, depth: int, heuristic) -> (Point, int):
+        Args:
+            board (Board): The current game board state.
+
+        Returns:
+            Point: The best move to play based on MiniMax and heuristics.
+        """
+        move, score = self.minimax_with_heuristics(board, self.color, self.max_depth, self.heuristic)
+        return move
+
+    def minimax_with_heuristics(self, board: Board, color: Color, depth: int, heuristic) -> tuple[Point, int]:
         """
         Perform MiniMax search with given heuristic to find the best move.
 
@@ -38,13 +49,13 @@ class MiniMaxPlayer(Player):
             Tuple[Point, int]: The best move and its associated score.
         """ 
         # If the game is over, return None and the current color's score.
-        if depth == 0 or board.is_game_over():
+        if depth == 0:
+            return None, heuristic(board, color)
+        
+        if board.is_game_over():
             return None, board.get_points_for_color(color)
 
         best_move, best_score = None, float('-inf')
-
-        # Calculate existing heuristic values for the current player
-        prev_heuristic = heuristic(board, color)
 
         for move in board.get_legal_moves(color):
             board_copy = copy.deepcopy(board)
@@ -57,18 +68,16 @@ class MiniMaxPlayer(Player):
             _, opposite_score = self.minimax_with_heuristics(board_copy, opposite_color, depth - 1, heuristic)
 
             # Calculate new heuristic values after the move
-            new_heuristic = heuristic(board_copy, color)
+            player_score = heuristic(board_copy, color)
 
             # Calculate the score based on heuristics and the opposite player's score
-            score = new_heuristic - prev_heuristic + opposite_score
+            score = player_score - opposite_score
 
-            if score == best_score:
-                # Introduce randomness for equally scored moves
+            # print(f"Board after move: {board_copy}Depth: {depth}, Move: {move}, Current Player: {color}, Player Score: {player_score}, Opponent Score: {opposite_score}, Combined Score: {score}")
+
+            if score == best_score: # Introduce randomness for equally scored moves
                 best_move = random.choice([best_move, move])
-            elif score > best_score:
-                # Update the best move if a better one is found
+            elif score > best_score: # Update the best move if a better one is found
                 best_score, best_move = score, move
 
-        # Adjust the score based on the current player's color
-        best_score *= 1 if color == self.color else -1
         return best_move, best_score

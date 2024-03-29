@@ -32,7 +32,9 @@ class Player:
             try:
                 x = int(resp.split(',')[0])
                 y = int(resp.split(',')[1])
-                return Point(x, y)
+                move = Point(x, y)
+                if move in board.get_legal_moves(self.color):
+                    return move
             except:
                 continue
 
