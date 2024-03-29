@@ -15,8 +15,7 @@ class Runner:
 
     def __init__(self):
         Runner.play_all_heuristics(HeuristicPlayer, 100)
-        Runner.play_all_heuristics(MiniMaxPlayer, 100)
-        
+        Runner.play_all_heuristics(MiniMaxPlayer, 10)
         # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 4), RandomPlayer(Color.BLACK), 10)
             
     @staticmethod
@@ -26,7 +25,6 @@ class Runner:
             func_name = str(func)
             print()
             print(f'{func_name.replace('_', ' ').title()}')
-            print()
             Runner.compare_players(player(Color.WHITE, func_name), RandomPlayer(Color.BLACK), games, show_game, break_at_loss)
 
     @staticmethod
@@ -106,8 +104,7 @@ class Runner:
             # Play a game between player1 and player2
             winner = Runner.play_game([player1, player2], show_game)
 
-            if break_at_loss and winner != player1:
-                break
+            if break_at_loss and winner != player1: break
 
             # Determine the category of the result (Win, Tie, or Loss)
             category = 'Tie' if winner is None else type(winner).__name__
@@ -123,9 +120,12 @@ class Runner:
         s = f'Results from {games} games in {round(perf_counter() - start_time, 2)} secs:'
         print('-'*len(s) + f'\n{s}')
 
-        for name, data in winners_dict.items():
-            for color, count in data.items():
-                print(f'\t{name} as {color}: {count}/{games}')
+        # Sort winners_dict for printing
+        sorted_dict = dict(sorted(winners_dict.items()))
+        for category, data in sorted_dict.items():
+            sorted_data = dict(sorted(data.items(), key=lambda x: x[1], reverse=True))
+            for color, count in sorted_data.items():
+                print(f'\t{category} as {color}: {count}/{games}')
 
 
 if __name__ == "__main__":
