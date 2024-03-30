@@ -15,7 +15,7 @@ class Runner:
 
     def __init__(self):
         # Runner.compare_players(HeuristicPlayer(Color.WHITE), RandomPlayer(Color.BLACK), 100, show_game=True, break_at_loss=True)
-        Runner.compare_players(Player(Color.BLACK), MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic', 'stability_heuristic'], max_depth=3), 1, show_game=True, break_at_loss=True)
+        Runner.compare_players(Player(Color.WHITE), MiniMaxPlayer(Color.BLACK, ['square_heuristic', 'mobility_heuristic', 'points_heuristic', 'stability_heuristic'], max_depth=3), 1, show_game=True, break_at_loss=True)
 
         # Runner.play_all_heuristics(HeuristicPlayer, 100)
         # Runner.play_all_heuristics(MiniMaxPlayer, 1)
