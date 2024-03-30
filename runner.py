@@ -101,19 +101,19 @@ class Runner:
 
 if __name__ == "__main__":
 
-    player1 = MiniMaxPlayer(Color.BLACK, ['square_heuristic'], max_depth=1)
-    player2 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic'], max_depth=1)
+    player1 = MiniMaxPlayer(Color.BLACK, ['square_heuristic'], max_depth=2)
+    player2 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic'], max_depth=2)
     player3 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic'], max_depth=1)
     player4 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic', 'stability_heuristic'], max_depth=1)
 
-    Runner.compare_players(player1, player2, 20)
-    Runner.compare_players(player1, player3, 20)
-    Runner.compare_players(player1, player4, 20)
-    player2.color = Color.BLACK
-    Runner.compare_players(player2, player3, 20)
-    Runner.compare_players(player2, player4, 20)
-    player3.color = Color.BLACK
-    Runner.compare_players(player3, player4, 20)
+    Runner.compare_players(player1, player2, 1, show_game=True)
+    # Runner.compare_players(player1, player3, 20)
+    # Runner.compare_players(player1, player4, 20)
+    # player2.color = Color.BLACK
+    # Runner.compare_players(player2, player3, 20)
+    # Runner.compare_players(player2, player4, 20)
+    # player3.color = Color.BLACK
+    # Runner.compare_players(player3, player4, 20)
 
     # Runner.play_all_heuristics(10)
     # BoardTester(RandomPlayer(Color.WHITE))

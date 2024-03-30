@@ -16,7 +16,7 @@ class HeuristicPlayer(Player):
             color (Color): The player's color.
             heuristic_names (List[str]): The heuristic function to use.
         """
-        self.heuristics = [ getattr(Board, name) if hasattr(Board, name) else None for name in heuristic_names ]
+        self.heuristics: List[function] = [ getattr(Board, name) if hasattr(Board, name) else None for name in heuristic_names ]
         super().__init__(color)
 
     def play(self, board: Board) -> Point:
@@ -32,12 +32,12 @@ class HeuristicPlayer(Player):
         legal_moves = board.get_legal_moves(self.color)
 
         current_best = float('-inf')
-        best_move = None
+        best_move: Point = None
         for move in legal_moves:
             board_copy = copy.deepcopy(board)
             board_copy.place_and_flip_discs(move, self.color)
             # heuristic_values = {str(heuristic.__name__): heuristic(board_copy, self.color) for heuristic in self.heuristics}
-            heuristic_value = sum(heuristic(board_copy, self.color) for heuristic in self.heuristics)
+            heuristic_value: int = sum(heuristic(board_copy, self.color) for heuristic in self.heuristics)
             if current_best < heuristic_value:
                 current_best = heuristic_value
                 best_move = move

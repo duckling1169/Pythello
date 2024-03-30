@@ -9,12 +9,12 @@ class Board():
         Color.WHITE: [Point(3, 4), Point(4, 3)]
     }
     
-    SIZE = 8
+    SIZE: int = 8
 
-    def __init__(self, scale:int = 1):
+    def __init__(self, scale: int = 1):
         self.scale = scale
 
-        self.grid = [[Color.EMPTY.value] * Board.SIZE for _ in range(Board.SIZE)]
+        self.grid: List[List[str]] = [[Color.EMPTY.value] * Board.SIZE for _ in range(Board.SIZE)]
 
         for color, points in Board.STARTING_POINTS.items():
             for point in points:
@@ -31,7 +31,7 @@ class Board():
         white_legal_moves = self.get_legal_moves(Color.WHITE)
         return not any(black_legal_moves) and not any(white_legal_moves)
 
-    def is_valid_position(self, point) -> bool:
+    def is_valid_position(self, point: Point) -> bool:
         """
         Check if a point is within the valid board boundaries.
 
@@ -43,7 +43,7 @@ class Board():
         """
         return 0 <= point.x < self.SIZE and 0 <= point.y < self.SIZE
 
-    def is_stable_piece(self, point:Point, color:Color) -> bool:
+    def is_stable_piece(self, point: Point, color: Color) -> bool:
         """
         Check if a piece at the specified point is stable for the given color.
 
@@ -60,26 +60,26 @@ class Board():
             return False
 
         # Define the eight unique directions as Points
-        directions = [Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1),
+        directions: List[Point] = [Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1),
                     Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)]
 
-        unique_directions = set()
+        unique_directions: set = set()
        
         for direction in directions:
             current_point = point.__copy__()
-            is_stable = True # Flag to track if the piece is stable in this direction
+            is_stable: bool = True # Flag to track if the piece is stable in this direction
             
             while self.is_valid_position(current_point):
-                current_color = self.grid[current_point.y][current_point.x]
+                color_value = self.grid[current_point.y][current_point.x]
 
-                if current_color == Color.EMPTY.value:
+                if color_value == Color.EMPTY.value:
                     is_stable = False  # An empty square makes the space not stable
                     break
 
                 current_point.shift(direction.x, direction.y)
 
             if is_stable: # Check if the direction or its mirrored version is already in the set
-                mirrored_direction = Point(-direction.x, -direction.y)
+                mirrored_direction: Point = Point(-direction.x, -direction.y)
                 if not (direction in unique_directions or mirrored_direction in unique_directions):
                     unique_directions.add(direction)
 
@@ -94,7 +94,7 @@ class Board():
                 for y in range(Board.SIZE) \
                 if self.place_and_flip_discs(Point(x, y), color, False)]
 
-    def place_and_flip_discs(self, point:Point, color:Color, perform_flip:bool = True) -> List[Point]:
+    def place_and_flip_discs(self, point: Point, color: Color, perform_flip: bool = True) -> List[Point]:
         if self.grid[point.y][point.x] != Color.EMPTY.value:
             return []
 
@@ -116,9 +116,7 @@ class Board():
             return []
 
         # Define directions for all 8 possible neighbors
-        directions = [Point(-1, 0), Point(-1, 1), Point(0, 1), Point(1, 1), Point(1, 0), Point(1, -1), Point(0, -1), Point(-1, -1)]
-
-        flipped_discs = []
+        directions: List[Point] = [Point(-1, 0), Point(-1, 1), Point(0, 1), Point(1, 1), Point(1, 0), Point(1, -1), Point(0, -1), Point(-1, -1)]
 
         # Check directions and assign results to `disc` simultaneously
         flipped_discs = [disc for direction in directions if (disc := flip_discs_in_direction(direction.x, direction.y))]
@@ -136,13 +134,13 @@ class Board():
 
         return flipped_discs
 
-    def get_points_for_color(self, color:Color) -> int:
+    def get_points_for_color(self, color: Color) -> int:
         return sum(row.count(color.value) for row in self.grid)
 
     def get_closest_corner(self, point: Point) -> Point:
         # Define the coordinates of the four corners
-        corners = [Point(0, 0), Point(0, 7), Point(7, 0), Point(7, 7)]
-        closest_corner = None
+        corners: List[Point] = [Point(0, 0), Point(0, 7), Point(7, 0), Point(7, 7)]
+        closest_corner: Point = None
         closest_distance = float('inf')
         
         # Calculate the distance from the given point to each corner
@@ -182,7 +180,7 @@ class Board():
         # Assign a score based on whether the color is the winner or not
         return 100 if winner == color else -100
 
-    def points_heuristic(self, color: Color, threshold: float=0.7) -> int:
+    def points_heuristic(self, color: Color, threshold: float = 0.7) -> int:
         """
         Calculate a heuristic value for the given player's position on the board.
 
@@ -237,8 +235,8 @@ class Board():
         C_SQUARE_VALUE = -7
         X_SQUARE_VALUE = -3
         
-        corners = [Point(0, 0), Point(0, 7), Point(7, 0), Point(7, 7)]
-        heuristic_value = 0
+        corners: List[Point] = [Point(0, 0), Point(0, 7), Point(7, 0), Point(7, 7)]
+        heuristic_value: int = 0
 
         for corner in corners:
             corner_color = self.grid[corner.y][corner.x]
@@ -247,7 +245,7 @@ class Board():
                 heuristic_value += CORNER_VALUE * (1 if corner_color == color.value else -1)
                 continue
 
-            directions = [Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1),
+            directions: List[Point] = [Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1),
                         Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)]
             
             for direction in directions:
@@ -278,8 +276,8 @@ class Board():
         Returns:
             int: The stability heuristic score.
         """
-        points_per_stable_point = 3
-        stability_heuristic = sum(points_per_stable_point for y in range(Board.SIZE) for x in range(Board.SIZE) if self.is_stable_piece(Point(y, x), color))
+        POINTS = 3
+        stability_heuristic = sum(POINTS for y in range(Board.SIZE) for x in range(Board.SIZE) if self.is_stable_piece(Point(y, x), color))
         return stability_heuristic
 
     def __str__(self):

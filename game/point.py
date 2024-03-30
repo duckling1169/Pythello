@@ -2,16 +2,16 @@ import math
 
 class Point:
 
-    def __init__(self, x_init, y_init):
+    def __init__(self, x_init: int, y_init: int):
         self.x = x_init
         self.y = y_init
 
-    def shift(self, x, y) -> None:
+    def shift(self, x: int, y: int) -> None:
         self.x += x
         self.y += y
 
     @staticmethod
-    def dist(p1_x, p1_y, p2_x, p2_y) -> float:
+    def dist(p1_x: int, p1_y: int, p2_x: int, p2_y: int) -> float:
         return round(math.dist([p1_x, p1_y], [p2_x, p2_y]), 2)
 
     def __copy__(self):
