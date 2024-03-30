@@ -95,6 +95,20 @@ class Board():
                 if self.place_and_flip_discs(Point(x, y), color, False)]
 
     def place_and_flip_discs(self, point: Point, color: Color, perform_flip: bool = True) -> List[Point]:
+        """
+        Place a disc at the specified point and flip the opponent's discs if necessary.
+
+        If perform_flip is True, this method will place a disc of the specified color at the given point and flip any opponent's discs according to the game rules.
+        If perform_flip is False, this method will only return the discs that would be flipped without actually performing the flips.
+
+        Args:
+            point (Point): The point where the disc will be placed.
+            color (Color): The color of the disc to be placed.
+            perform_flip (bool, optional): Flag indicating whether to perform flips. Defaults to True.
+
+        Returns:
+            List[Point]: A list of points representing the discs flipped as a result of placing the new disc. If no discs are flipped, an empty list is returned.
+        """
         if self.grid[point.y][point.x] != Color.EMPTY.value:
             return []
 
