@@ -14,18 +14,12 @@ from time import perf_counter
 class Runner:
 
     def __init__(self):
-        Runner.play_all_heuristics(HeuristicPlayer, 100)
-        Runner.play_all_heuristics(MiniMaxPlayer, 10)
+        # Runner.compare_players(HeuristicPlayer(Color.WHITE), RandomPlayer(Color.BLACK), 100, show_game=True, break_at_loss=True)
+        Runner.compare_players(MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic', 'stability_heuristic'], max_depth=1), RandomPlayer(Color.BLACK), 100, show_game=True, break_at_loss=True)
+
+        # Runner.play_all_heuristics(HeuristicPlayer, 100)
+        # Runner.play_all_heuristics(MiniMaxPlayer, 1)
         # Runner.compare_players(MiniMaxPlayer(Color.WHITE, 4), RandomPlayer(Color.BLACK), 10)
-            
-    @staticmethod
-    def play_all_heuristics(player: Type[Player], games:int = 10, show_game:bool = False, break_at_loss:bool = False):
-        heuristic_functions = [func for func in dir(Board) if callable(getattr(Board, func)) and 'heuristic' in func ]
-        for func in heuristic_functions:
-            func_name = str(func)
-            print()
-            print(f'{func_name.replace('_', ' ').title()}')
-            Runner.compare_players(player(Color.WHITE, func_name), RandomPlayer(Color.BLACK), games, show_game, break_at_loss)
 
     @staticmethod
     def play_game(players: Union[Player, Player], show_game:bool=False):
@@ -127,19 +121,8 @@ class Runner:
             for color, count in sorted_data.items():
                 print(f'\t{category} as {color}: {count}/{games}')
 
-
 if __name__ == "__main__":
-
-    # board = Board()
-    # player = MiniMaxPlayer(Color.BLACK, 3)
-    # board.grid[2][2] = Color.WHITE.value
-    # print(board)
-    # placement_point = player.play(board)
-    # print(board)
-    # print(placement_point)
-
     Runner()
     # Runner.play_all_heuristics(10)
     # BoardTester(RandomPlayer(Color.WHITE))
     # HeuristicTester(RandomPlayer(Color.WHITE))
-

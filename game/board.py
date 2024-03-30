@@ -62,37 +62,24 @@ class Board():
         directions = [Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1),
                     Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)]
 
-        # Count of unique directions where the piece is located
-        unique_directions = set()  # Use a set to store unique directions
-        color = self.grid[point.y][point.x]
+        unique_directions = set()
        
         for direction in directions:
             current_point = point.__copy__()
             is_stable = True # Flag to track if the piece is stable in this direction
-            walls = 0
-            want_opposite_color = True
+            
             while self.is_valid_position(current_point):
                 current_color = self.grid[current_point.y][current_point.x]
 
                 if current_color == Color.EMPTY.value:
-                    walls -= 1
-                    if walls == -1:
-                        is_stable = False  # An empty square makes the space not stable
-                        break
-
-                elif want_opposite_color and current_color != color: # - - W B - - 
-                    walls += 1
-                    want_opposite_color = True
-
-                elif not want_opposite_color and current_point == color: # - - W B W - - -
-                    walls += 1
-                    want_opposite_color = False
+                    is_stable = False  # An empty square makes the space not stable
+                    break
 
                 current_point.shift(direction.x, direction.y)
 
             if is_stable: # Check if the direction or its mirrored version is already in the set
                 mirrored_direction = Point(-direction.x, -direction.y)
-                if direction not in unique_directions and mirrored_direction not in unique_directions:
+                if not (direction in unique_directions or mirrored_direction in unique_directions):
                     unique_directions.add(direction)
 
         # Check if the piece is at the end of at least four unique directions
@@ -194,7 +181,7 @@ class Board():
         # Assign a score based on whether the color is the winner or not
         return 100 if winner == color else -100
 
-    def points_heuristic(self, color: Color, threshold: float=0.8) -> int:
+    def points_heuristic(self, color: Color, threshold: float=0.7) -> int:
         """
         Calculate a heuristic value for the given player's position on the board.
 
@@ -209,9 +196,8 @@ class Board():
         player_points = self.get_points_for_color(color)
         opponent_points = self.get_points_for_color(opponent_color)
 
-        maximize = threshold * Board.SIZE
-        diff = player_points - opponent_points if (player_points + opponent_points) > maximize else opponent_points - player_points
-        return diff
+        maximize = threshold * Board.SIZE * Board.SIZE
+        return player_points - opponent_points if (player_points + opponent_points) > maximize else opponent_points - player_points
 
     def mobility_heuristic(self, color: Color) -> int:
         """
@@ -225,15 +211,14 @@ class Board():
         Returns:
             int: The mobility heuristic score.
         """
+        opponent_color = Color.BLACK if color == Color.WHITE else Color.WHITE
+
         # Get the legal moves for the player and the opponent
         player_legal_moves = self.get_legal_moves(color)
-        opponent_color = Color.BLACK if color == Color.WHITE else Color.WHITE
         opponent_legal_moves = self.get_legal_moves(opponent_color)
 
         # Calculate the difference in the number of legal moves
-        mobility_score = len(player_legal_moves) - len(opponent_legal_moves)
-
-        return mobility_score
+        return len(player_legal_moves) - len(opponent_legal_moves)
 
     def square_heuristic(self, color: Color) -> int:
         """
@@ -247,35 +232,36 @@ class Board():
         Returns:
             int: The square heuristic score.
         """
-        # Assign values to the board positions 
-        CORNER_VALUE = 10
-        C_SQUARE_VALUE = -5
-        X_SQUARE_VALUE = -2
-
-        c_squares = [Point(1, 1), Point(1, 6), Point(6, 1), Point(6, 6)]
-        x_squares = [Point(0, 1), Point(1, 0), Point(6, 0), Point(0, 6), Point(7, 1), Point(1, 7), Point(6, 7), Point(7, 6)]
-
+        CORNER_VALUE = 12
+        C_SQUARE_VALUE = -7
+        X_SQUARE_VALUE = -3
+        
+        corners = [Point(0, 0), Point(0, 7), Point(7, 0), Point(7, 7)]
         heuristic_value = 0
 
-        for y in range(Board.SIZE):
-            for x in range(Board.SIZE):
-                placed_color = self.grid[y][x]
-                if placed_color == Color.EMPTY.value:
-                    continue 
+        for corner in corners:
+            corner_color = self.grid[corner.y][corner.x]
 
-                point = Point(x,y)
-                color_mod = 1 if placed_color == color.value else -1 # always bad for player
+            if corner_color != Color.EMPTY.value:
+                heuristic_value += CORNER_VALUE * (1 if corner_color == color.value else -1)
+                continue
 
-                closest_corner = self.get_closest_corner(point)
-                corner_color = self.grid[closest_corner.y][closest_corner.x]
+            directions = [Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1),
+                        Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)]
+            
+            for direction in directions:
+                point = corner.__copy__()
+                point.shift(direction.x, direction.y)
+                if not self.is_valid_position(point):
+                    continue
 
-                if corner_color == Color.EMPTY.value:
-                    if point in c_squares:
-                        heuristic_value += C_SQUARE_VALUE * color_mod
-                    elif point in x_squares:
-                        heuristic_value += X_SQUARE_VALUE * color_mod
-                else:
-                    heuristic_value += CORNER_VALUE * color_mod * (1 if corner_color == color.value else -1)
+                square_color = self.grid[point.y][point.x]
+                if direction.x == 0 or direction.y == 0: # X SQUARE                    
+                    if square_color != Color.EMPTY.value:
+                        heuristic_value += X_SQUARE_VALUE * 1 if square_color == color.value else -1
+                else: # C SQUARE
+                    if square_color != Color.EMPTY.value:
+                        heuristic_value += C_SQUARE_VALUE * 1 if square_color == color.value else -1
 
         return heuristic_value
 
