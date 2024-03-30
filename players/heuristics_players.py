@@ -2,19 +2,21 @@ from game.enums import Color
 from game.board import Board
 from game.point import Point
 from players.player import Player
+
 import copy
+from typing import List
 
 class HeuristicPlayer(Player):
 
-    def __init__(self, color: Color, heuristic_name:str = "square_heuristic"):
+    def __init__(self, color: Color, heuristic_names: List[str] = ['square_heuristic', 'mobility_heuristic']):
         """
         Initialize a HeuristicPlayer instance.
 
         Args:
             color (Color): The player's color.
-            heuristic_func (Callable[[Board, Color], int]): The heuristic function to use.
+            heuristic_names (List[str]): The heuristic function to use.
         """
-        self.heuristic = getattr(Board, heuristic_name) if hasattr(Board, heuristic_name) else None
+        self.heuristics = [ getattr(Board, name) if hasattr(Board, name) else None for name in heuristic_names ]
         super().__init__(color)
 
     def play(self, board: Board) -> Point:
@@ -34,8 +36,8 @@ class HeuristicPlayer(Player):
         for move in legal_moves:
             board_copy = copy.deepcopy(board)
             board_copy.place_and_flip_discs(move, self.color)
-            heuristic_value = self.heuristic(board_copy, self.color)
-
+            # heuristic_values = {str(heuristic.__name__): heuristic(board_copy, self.color) for heuristic in self.heuristics}
+            heuristic_value = sum(heuristic(board_copy, self.color) for heuristic in self.heuristics)
             if current_best < heuristic_value:
                 current_best = heuristic_value
                 best_move = move

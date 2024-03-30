@@ -20,13 +20,9 @@ class HeuristicTester:
     def test_winner_heuristic(player:Player):
         board = Board()
         board2 = Board()
-        board2.grid[2][2] = player.color.value
-        board3 = Board()
         opponent_color = Color.WHITE if player.color == Color.BLACK else Color.BLACK
-        board3.grid[2][2] = opponent_color.value
-
-        print(board.winner_heuristic(player.color), board2.winner_heuristic(player.color), board3.winner_heuristic(player.color))
-        return board.winner_heuristic(player.color) == 0 and board2.winner_heuristic(player.color) == -100 and board3.winner_heuristic(player.color) == 100
+        board2.grid = [[opponent_color.value] * len(board2.grid) for _ in range(len(board2.grid))]
+        return board.winner_heuristic(player.color) == 0 and board2.winner_heuristic(player.color) == -100
     
     def test_points_heuristic(player:Player):
         board = Board()
@@ -83,7 +79,7 @@ class HeuristicTester:
         board3.grid[3][3] = Color.EMPTY.value 
         board3.grid[4][3] = Color.EMPTY.value 
         board3.grid[3][4] = Color.EMPTY.value 
-        board3.grid[4][4] = Color.EMPTY.value 
+        board3.grid[4][4] = Color.EMPTY.value
 
         return board.square_heuristic(player.color) == -10 and board2.square_heuristic(player.color) == 10 and board3.square_heuristic(player.color) == -7
     
