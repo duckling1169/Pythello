@@ -20,7 +20,7 @@ class MiniMaxPlayer(Player):
             heuristics (function): The heuristic functions to evaluate board states.
         """
         self.heuristic_names = heuristic_names
-        self.heuristics = [ getattr(Board, name) if hasattr(Board, name) else None for name in heuristic_names ]
+        self.heuristics: List[function] = [ getattr(Board, name) if hasattr(Board, name) else None for name in heuristic_names ]
         self.max_depth = max_depth
         super().__init__(color)
 
@@ -37,7 +37,7 @@ class MiniMaxPlayer(Player):
         move, score = self.minimax_with_heuristics(board, self.color, self.max_depth, self.heuristics)
         return move
 
-    def minimax_with_heuristics(self, board: Board, color: Color, depth: int, heuristics) -> tuple[Point, int]:
+    def minimax_with_heuristics(self, board: Board, color: Color, depth: int, heuristics) -> tuple[Point, float]:
         """
         Perform MiniMax search with given heuristic to find the best move.
 
@@ -48,7 +48,7 @@ class MiniMaxPlayer(Player):
             heuristics: The heuristic function to min-max.
 
         Returns:
-            Tuple[Point, int]: The best move and its associated score.
+            Tuple[Point, float]: The best move and its associated score.
         """ 
         if depth == 0:
             heuristic_value = sum(heuristic(board, color) for heuristic in heuristics)
@@ -71,6 +71,7 @@ class MiniMaxPlayer(Player):
 
             # Calculate new heuristic values after the move
             heuristic_values = {str(heuristic.__name__): heuristic(board_copy, self.color) for heuristic in self.heuristics}
+
             player_score = sum(heuristic(board_copy, color) for heuristic in heuristics)
 
             # Calculate the score based on heuristics and the opposite player's score
