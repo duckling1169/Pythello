@@ -4,6 +4,7 @@ from players.player import Player
 from players.random_player import RandomPlayer
 from players.minimax_player import MiniMaxPlayer
 from players.heuristics_players import HeuristicPlayer
+from players.mcts_player import MCTSPlayer
 
 from tests.board_tester import BoardTester
 from tests.heuristic_tester import HeuristicTester
@@ -101,12 +102,16 @@ class Runner:
 
 if __name__ == "__main__":
 
-    player1 = MiniMaxPlayer(Color.BLACK, ['square_heuristic'], max_depth=2)
-    player2 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic'], max_depth=2)
-    player3 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic'], max_depth=1)
-    player4 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic', 'stability_heuristic'], max_depth=1)
+    minimax_p1 = MiniMaxPlayer(Color.WHITE, ['square_heuristic'], max_depth=2)
+    minimax_p2 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic'], max_depth=2)
 
-    Runner.compare_players(player1, player2, 1, show_game=True)
+    # player3 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic'], max_depth=1)
+    # player4 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic', 'stability_heuristic'], max_depth=1)
+
+    mcts_player = MCTSPlayer(Color.BLACK, 250)
+
+    Runner.compare_players(mcts_player, minimax_p2, 1, show_game=True)
+
     # Runner.compare_players(player1, player3, 20)
     # Runner.compare_players(player1, player4, 20)
     # player2.color = Color.BLACK
