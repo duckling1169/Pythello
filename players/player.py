@@ -30,8 +30,8 @@ class Player:
         while True:
             resp = input(f'Placement: ')
             try:
-                x = int(resp.split(',')[0])
-                y = int(resp.split(',')[1])
+                x = ord(resp.split(',')[0]) - ord('a')
+                y = int(resp.split(',')[1]) - 1
                 move = Point(x, y)
                 if move in board.get_legal_moves(self.color):
                     return move
