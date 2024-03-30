@@ -1,6 +1,7 @@
 from game.point import Point
 from game.enums import Color
 from typing import List
+from math import ceil
 class Board():
 
     STARTING_POINTS = {
@@ -277,7 +278,8 @@ class Board():
         Returns:
             int: The stability heuristic score.
         """
-        stability_heuristic = sum(1 for y in range(Board.SIZE) for x in range(Board.SIZE) if self.is_stable_piece(Point(y, x), color))
+        points_per_stable_point = 3
+        stability_heuristic = sum(points_per_stable_point for y in range(Board.SIZE) for x in range(Board.SIZE) if self.is_stable_piece(Point(y, x), color))
         return stability_heuristic
 
     def __str__(self):

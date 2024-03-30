@@ -49,7 +49,6 @@ class MiniMaxPlayer(Player):
         Returns:
             Tuple[Point, int]: The best move and its associated score.
         """ 
-        # If the game is over, return None and the current color's score.
         if depth == 0:
             heuristic_value = sum(heuristic(board, color) for heuristic in heuristics)
             return None, heuristic_value
@@ -82,9 +81,9 @@ class MiniMaxPlayer(Player):
             else: # 20, 10 = 10 | 10, 25 = -15
                 score = player_score - opposite_score
             
-            print(move, heuristic_values, player_score, opposite_score, score)
+            # print(move, heuristic_values, player_score, opposite_score, score)
             score = player_score
-            
+
             # print(f"Board after move: {board_copy}Depth: {depth}, Move: {move}, Current Player: {color}, Player Score: {player_score}, Opponent Score: {opposite_score}, Combined Score: {score}")
             if score == best_score: # Introduce randomness for equally scored moves
                 best_move = random.choice([best_move, move])
