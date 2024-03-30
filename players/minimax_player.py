@@ -19,6 +19,7 @@ class MiniMaxPlayer(Player):
             max_depth (int): The maximum depth to search in the MiniMax algorithm.
             heuristics (function): The heuristic functions to evaluate board states.
         """
+        self.heuristic_names = heuristic_names
         self.heuristics = [ getattr(Board, name) if hasattr(Board, name) else None for name in heuristic_names ]
         self.max_depth = max_depth
         super().__init__(color)
