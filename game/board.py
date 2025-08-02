@@ -90,9 +90,63 @@ class Board():
         return False
 
     def get_legal_moves(self, color: Color) -> List[Point]:
-        return [Point(x, y) for x in range(Board.SIZE) \
-                for y in range(Board.SIZE) \
-                if self.place_and_flip_discs(Point(x, y), color, False)]
+        """
+        Get all legal moves for the specified color.
+        
+        Args:
+            color (Color): The color to get legal moves for.
+            
+        Returns:
+            List[Point]: List of all legal move positions.
+        """
+        legal_moves = []
+        
+        for x in range(Board.SIZE):
+            for y in range(Board.SIZE):
+                point = Point(x, y)
+                if self.is_legal_move(point, color):
+                    legal_moves.append(point)
+        
+        return legal_moves
+    
+    def is_legal_move(self, point: Point, color: Color) -> bool:
+        """
+        Check if a move is legal without actually performing it.
+        
+        Args:
+            point (Point): The point to check.
+            color (Color): The color of the player.
+            
+        Returns:
+            bool: True if the move is legal, False otherwise.
+        """
+        # Position must be empty
+        if self.grid[point.y][point.x] != Color.EMPTY.value:
+            return False
+
+        # Check if we can flip any discs in any direction
+        directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
+        
+        for dx, dy in directions:
+            x, y = point.x + dx, point.y + dy
+            found_opponent = False
+            
+            while self.is_valid_position(Point(x, y)):
+                cell_value = self.grid[y][x]
+                
+                if cell_value == Color.EMPTY.value:
+                    break
+                    
+                if cell_value == color.value:
+                    if found_opponent:
+                        return True
+                    break
+                    
+                found_opponent = True
+                x += dx
+                y += dy
+        
+        return False
 
     def place_and_flip_discs(self, point: Point, color: Color, perform_flip: bool = True) -> List[Point]:
         """
@@ -271,10 +325,10 @@ class Board():
                 square_color = self.grid[point.y][point.x]
                 if direction.x == 0 or direction.y == 0: # X SQUARE                    
                     if square_color != Color.EMPTY.value:
-                        heuristic_value += X_SQUARE_VALUE * 1 if square_color == color.value else -1
+                        heuristic_value += X_SQUARE_VALUE * (1 if square_color == color.value else -1)
                 else: # C SQUARE
                     if square_color != Color.EMPTY.value:
-                        heuristic_value += C_SQUARE_VALUE * 1 if square_color == color.value else -1
+                        heuristic_value += C_SQUARE_VALUE * (1 if square_color == color.value else -1)
 
         return heuristic_value
 
@@ -291,8 +345,66 @@ class Board():
             int: The stability heuristic score.
         """
         POINTS = 3
-        stability_heuristic = sum(POINTS for y in range(Board.SIZE) for x in range(Board.SIZE) if self.is_stable_piece(Point(y, x), color))
+        stability_heuristic = sum(POINTS for y in range(Board.SIZE) for x in range(Board.SIZE) if self.is_stable_piece(Point(x, y), color))
         return stability_heuristic
+
+    def get_ordered_legal_moves(self, color: Color) -> List[Point]:
+        """
+        Get legal moves ordered by priority for better alpha-beta pruning.
+        Corners first, then edges, then other moves.
+        
+        Args:
+            color (Color): The color to get legal moves for.
+            
+        Returns:
+            List[Point]: List of legal moves ordered by priority.
+        """
+        legal_moves = self.get_legal_moves(color)
+        
+        corners = []
+        edges = []
+        others = []
+        
+        for move in legal_moves:
+            if (move.x == 0 or move.x == Board.SIZE - 1) and (move.y == 0 or move.y == Board.SIZE - 1):
+                corners.append(move)  # Corner moves are highest priority
+            elif move.x == 0 or move.x == Board.SIZE - 1 or move.y == 0 or move.y == Board.SIZE - 1:
+                edges.append(move)    # Edge moves are medium priority
+            else:
+                others.append(move)   # Center moves are lowest priority
+        
+        return corners + edges + others
+
+    def make_move(self, point: Point, color: Color) -> List[Point]:
+        """
+        Make a move and return the flipped discs for easy undo.
+        
+        Args:
+            point (Point): The move to make.
+            color (Color): The color making the move.
+            
+        Returns:
+            List[Point]: The discs that were flipped.
+        """
+        return self.place_and_flip_discs(point, color, perform_flip=True)
+    
+    def undo_move(self, point: Point, color: Color, flipped_discs: List[List[Point]]):
+        """
+        Undo a move by reverting the board state.
+        
+        Args:
+            point (Point): The move to undo.
+            color (Color): The color that made the move.
+            flipped_discs (List[List[Point]]): The discs that were flipped.
+        """
+        # Remove the placed disc
+        self.grid[point.y][point.x] = Color.EMPTY.value
+        
+        # Revert flipped discs
+        opponent_color = Color.WHITE if color == Color.BLACK else Color.BLACK
+        for path in flipped_discs:
+            for disc_point in path:
+                self.grid[disc_point.y][disc_point.x] = opponent_color.value
 
     def __str__(self):
         scale = self.scale
