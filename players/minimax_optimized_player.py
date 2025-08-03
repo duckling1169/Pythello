@@ -4,62 +4,64 @@ from game.point import Point
 from players.player import Player
 
 import random
-import copy
 from typing import List
 
-class MiniMaxPlayer(Player):
 
-    def __init__(self, color: Color, heuristic_names: List[str] = ['square_heuristic', 'mobility_heuristic'], max_depth:int = 2):
+class OptimizedMiniMaxPlayer(Player):
+    """
+    An optimized minimax player that uses move/undo instead of deep copying
+    for significantly better performance.
+    """
+
+    def __init__(self, color: Color, heuristic_names: List[str] = ['square_heuristic', 'mobility_heuristic'], max_depth: int = 4):
         """
-        A player class implementing the MiniMax algorithm with heuristic evaluation.
+        Initialize an optimized MiniMax player.
 
-        Attributes:
+        Args:
             color (Color): The color of the player.
             heuristic_names (List[str]): The names of the heuristic functions to use.
             max_depth (int): The maximum depth to search in the MiniMax algorithm.
-            heuristics (function): The heuristic functions to evaluate board states.
         """
         self.heuristic_names = heuristic_names
-        self.heuristics: List[function] = [ getattr(Board, name) if hasattr(Board, name) else None for name in heuristic_names ]
+        self.heuristics: List[function] = [getattr(Board, name) if hasattr(Board, name) else None for name in heuristic_names]
         self.max_depth = max_depth
         super().__init__(color)
 
     def play(self, board: Board) -> Point:
         """
-        Chooses the best move for the player using MiniMax with heuristics.
+        Choose the best move using optimized MiniMax with alpha-beta pruning.
 
         Args:
             board (Board): The current game board state.
 
         Returns:
-            Point: The best move to play based on MiniMax and heuristics.
+            Point: The best move to play.
         """
-        move, score = self.minimax_with_alpha_beta(board, self.color, self.max_depth, self.heuristics, 
-                                                  float('-inf'), float('inf'), True)
+        move, score = self.minimax_optimized(board, self.color, self.max_depth, 
+                                           float('-inf'), float('inf'), True)
         return move
 
-    def minimax_with_alpha_beta(self, board: Board, color: Color, depth: int, heuristics, 
-                               alpha: float, beta: float, maximizing_player: bool = True) -> tuple[Point, float]:
+    def minimax_optimized(self, board: Board, color: Color, depth: int, 
+                         alpha: float, beta: float, maximizing_player: bool = True) -> tuple[Point, float]:
         """
-        Perform MiniMax search with alpha-beta pruning for better performance.
+        Optimized MiniMax search using move/undo instead of deep copying.
 
         Args:
             board (Board): The current game board.
-            color (Color): The color of the player for whom to find the best move.
-            depth (int): The maximum search depth.
-            heuristics: The heuristic functions to evaluate positions.
-            alpha (float): The alpha value for alpha-beta pruning.
-            beta (float): The beta value for alpha-beta pruning.
+            color (Color): The color of the current player.
+            depth (int): The remaining search depth.
+            alpha (float): Alpha value for alpha-beta pruning.
+            beta (float): Beta value for alpha-beta pruning.
             maximizing_player (bool): Whether this is the maximizing player's turn.
 
         Returns:
-            Tuple[Point, float]: The best move and its associated score.
-        """ 
+            Tuple[Point, float]: The best move and its score.
+        """
         if depth == 0 or board.is_game_over():
             if board.is_game_over():
                 return None, board.winner_heuristic(self.color)
             else:
-                heuristic_value = sum(heuristic(board, self.color) for heuristic in heuristics)
+                heuristic_value = sum(heuristic(board, self.color) for heuristic in self.heuristics)
                 return None, heuristic_value
 
         legal_moves = board.get_ordered_legal_moves(color)
@@ -67,8 +69,7 @@ class MiniMaxPlayer(Player):
         # If no legal moves, skip to opponent
         if not legal_moves:
             opposite_color = Color.WHITE if color == Color.BLACK else Color.BLACK
-            _, score = self.minimax_with_alpha_beta(board, opposite_color, depth - 1, heuristics, 
-                                                   alpha, beta, not maximizing_player)
+            _, score = self.minimax_optimized(board, opposite_color, depth - 1, alpha, beta, not maximizing_player)
             return None, score
 
         best_move = None
@@ -77,12 +78,15 @@ class MiniMaxPlayer(Player):
             max_eval = float('-inf')
             
             for move in legal_moves:
-                board_copy = copy.deepcopy(board)
-                board_copy.place_and_flip_discs(move, color)
+                # Make move
+                flipped_discs = board.make_move(move, color)
                 
+                # Recursive call
                 opposite_color = Color.WHITE if color == Color.BLACK else Color.BLACK
-                _, eval_score = self.minimax_with_alpha_beta(board_copy, opposite_color, depth - 1, 
-                                                           heuristics, alpha, beta, False)
+                _, eval_score = self.minimax_optimized(board, opposite_color, depth - 1, alpha, beta, False)
+                
+                # Undo move
+                board.undo_move(move, color, flipped_discs)
                 
                 if eval_score > max_eval:
                     max_eval = eval_score
@@ -99,12 +103,15 @@ class MiniMaxPlayer(Player):
             min_eval = float('inf')
             
             for move in legal_moves:
-                board_copy = copy.deepcopy(board)
-                board_copy.place_and_flip_discs(move, color)
+                # Make move
+                flipped_discs = board.make_move(move, color)
                 
+                # Recursive call
                 opposite_color = Color.WHITE if color == Color.BLACK else Color.BLACK
-                _, eval_score = self.minimax_with_alpha_beta(board_copy, opposite_color, depth - 1, 
-                                                           heuristics, alpha, beta, True)
+                _, eval_score = self.minimax_optimized(board, opposite_color, depth - 1, alpha, beta, True)
+                
+                # Undo move
+                board.undo_move(move, color, flipped_discs)
                 
                 if eval_score < min_eval:
                     min_eval = eval_score
