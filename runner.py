@@ -3,6 +3,7 @@ from game.enums import Color
 from players.player import Player
 from players.random_player import RandomPlayer
 from players.minimax_player import MiniMaxPlayer
+from players.minimax_optimized_player import OptimizedMiniMaxPlayer
 from players.heuristics_players import HeuristicPlayer
 from players.mcts_player import MCTSPlayer
 
@@ -17,12 +18,12 @@ from time import perf_counter
 class Runner:
 
     @staticmethod
-    def play_game(players: Union[Player, Player], show_game:bool = False):
+    def play_game(players: List[Player], show_game:bool = False):
         """
         Play a game between two players.
 
         Args:
-            players (list): A list of two Player objects.
+            players (List[Player]): A list of two Player objects.
             show_game (bool, optional): Whether to display the game board during play (default is False).
 
         Returns:
@@ -101,25 +102,25 @@ class Runner:
         return True
 
 if __name__ == "__main__":
-
-    minimax_p1 = MiniMaxPlayer(Color.WHITE, ['square_heuristic'], max_depth=2)
-    minimax_p2 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic'], max_depth=2)
-
-    # player3 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic'], max_depth=1)
-    # player4 = MiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic', 'points_heuristic', 'stability_heuristic'], max_depth=1)
-
-    mcts_player = MCTSPlayer(Color.BLACK, 250)
-
-    Runner.compare_players(mcts_player, minimax_p2, 1, show_game=True)
-
-    # Runner.compare_players(player1, player3, 20)
-    # Runner.compare_players(player1, player4, 20)
-    # player2.color = Color.BLACK
-    # Runner.compare_players(player2, player3, 20)
-    # Runner.compare_players(player2, player4, 20)
-    # player3.color = Color.BLACK
-    # Runner.compare_players(player3, player4, 20)
-
-    # Runner.play_all_heuristics(10)
-    # BoardTester(RandomPlayer(Color.WHITE))
-    # HeuristicTester(RandomPlayer(Color.WHITE))
+    print("=== Othello AI Player Comparison ===\n")
+    
+    # Test different AI approaches
+    print("1. Comparing Random vs Heuristic Player:")
+    random_player = RandomPlayer(Color.BLACK)
+    heuristic_player = HeuristicPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic'])
+    Runner.compare_players(random_player, heuristic_player, 5, show_game=False)
+    
+    print("\n2. Comparing Original vs Optimized MiniMax:")
+    minimax_original = MiniMaxPlayer(Color.BLACK, ['square_heuristic', 'mobility_heuristic'], max_depth=3)
+    minimax_optimized = OptimizedMiniMaxPlayer(Color.WHITE, ['square_heuristic', 'mobility_heuristic'], max_depth=3)
+    Runner.compare_players(minimax_original, minimax_optimized, 3, show_game=False)
+    
+    print("\n3. Comparing MiniMax vs MCTS:")
+    minimax_player = OptimizedMiniMaxPlayer(Color.BLACK, ['square_heuristic', 'mobility_heuristic'], max_depth=4)
+    mcts_player = MCTSPlayer(Color.WHITE, 200)
+    Runner.compare_players(minimax_player, mcts_player, 3, show_game=False)
+    
+    print("\n4. Sample game with display:")
+    demo_player1 = OptimizedMiniMaxPlayer(Color.BLACK, ['square_heuristic'], max_depth=3)
+    demo_player2 = HeuristicPlayer(Color.WHITE, ['mobility_heuristic'])
+    Runner.play_game([demo_player1, demo_player2], show_game=True)
